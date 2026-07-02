@@ -1,4 +1,5 @@
 /* ============================================================= */
+
 /* ---------------------- STORAGE KEYS & CONFIG ---------------- */
 /* ============================================================= */
 const KEYS = {
@@ -24,9 +25,10 @@ const CFG = {
   toastDuration: 2800,
 };
 const DESIGN_STAGES = ["design", "revisi", "done"];
-const PRODUCTION_STAGES = ["desain", "printing", "jahit", "qc", "selesai"];
+const PRODUCTION_STAGES = ["design", "printing", "jahit", "qc", "done"];
 
 /* ============================================================= */
+
 /* ---------------------- UTILITIES ---------------------------- */
 /* ============================================================= */
 function rupiah(n) {
@@ -54,6 +56,7 @@ function getToday() {
 }
 
 /* ============================================================= */
+
 /* ---------------------- TOAST & MODAL ------------------------ */
 /* ============================================================= */
 let toastTimer = null;
@@ -87,6 +90,7 @@ document.addEventListener("click", (e) => {
 });
 
 /* ============================================================= */
+
 /* ---------------------- THEME & RESET ------------------------ */
 /* ============================================================= */
 function toggleDark() {
@@ -172,6 +176,7 @@ function getAvatarPalette(name = "") {
   return palette;
 }
 /* ============================================================= */
+
 /* ---------------------- HERO DASHBOARD ----------------------- */
 /* ============================================================= */
 function updateHero() {
@@ -224,6 +229,7 @@ function scrollToSection(id) {
 }
 
 /* ============================================================= */
+
 /* ---------------------- DESIGN ORDERS ------------------------ */
 /* ============================================================= */
 function getDesignOrders() {
@@ -400,26 +406,26 @@ function updatePipeline() {
 
 function renderDesignOrders() {
   let orders = window.firebaseDesignOrders || [];
+
   const tbody = document.getElementById("design-tbody");
   const mobileList = document.getElementById("design-mobile-list");
-  orders = [...orders].sort((a, b) => {
-    if (a.stage === "done" && b.stage !== "done") {
-      return 1;
-    }
 
-    if (a.stage !== "done" && b.stage === "done") {
-      return -1;
-    }
+  if (!tbody) return;
+
+  orders = [...orders].sort((a, b) => {
+    if (a.stage === "done" && b.stage !== "done") return 1;
+    if (a.stage !== "done" && b.stage === "done") return -1;
 
     const aTime = a.createdAt?.seconds || 0;
-
     const bTime = b.createdAt?.seconds || 0;
 
     return bTime - aTime;
   });
+
   const search = (
     document.getElementById("design-search")?.value || ""
   ).toLowerCase();
+
   const today = getToday();
 
   if (customerSortModes.designOrder === "az") {
@@ -429,6 +435,7 @@ function renderDesignOrders() {
       }),
     );
   }
+
   if (search) {
     orders = orders.filter(
       (o) =>
@@ -440,29 +447,55 @@ function renderDesignOrders() {
 
   if (app.designFilter === "done")
     orders = orders.filter((o) => o.stage === "done");
+
   if (app.designFilter === "progress")
     orders = orders.filter((o) => o.stage !== "done");
+
   if (app.designFilter === "overdue")
     orders = orders.filter(
       (o) => o.deadline && o.deadline < today && o.stage !== "done",
     );
+
   if (app.designFilter === "urgent")
     orders = orders.filter((o) => {
       if (!o.deadline || o.stage === "done") return false;
+
       const diff = (new Date(o.deadline) - new Date(today)) / 86400000;
+
       return diff >= 0 && diff <= 2;
     });
+
   if (app.stageFilter)
     orders = orders.filter((o) => o.stage === app.stageFilter);
+
   if (search)
     orders = orders.filter(
       (o) =>
-        o.customer.toLowerCase().includes(search) ||
-        o.design.toLowerCase().includes(search),
+        (o.customer || "").toLowerCase().includes(search) ||
+        (o.design || "").toLowerCase().includes(search),
     );
 
-  if (!orders.length) {
-    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="ri-check-double-line"></i>Semua tugas desain selesai / kosong</div></td></tr>`;
+  const totalRows = orders.length;
+
+  const p = paginate(orders, pagination.designOrders);
+
+  const visibleOrders = p.items;
+
+  if (!visibleOrders.length) {
+    tbody.innerHTML = `
+<tr>
+<td colspan="6">
+<div class="empty-state">
+<i class="ri-check-double-line"></i>
+Semua tugas desain selesai / kosong
+</div>
+</td>
+</tr>`;
+
+    if (mobileList) mobileList.innerHTML = "";
+
+    renderPagination("design-pagination", 1, 1, "changeDesignPage", totalRows);
+
     return;
   }
 
@@ -471,226 +504,171 @@ function renderDesignOrders() {
     revisi: "badge-revisi",
     done: "badge-done",
   };
+
   const statusLabel = {
     design: "Desain",
     revisi: "Revisi",
     done: "Selesai",
   };
 
-  tbody.innerHTML = orders
-    .map((o) => {
+  tbody.innerHTML = visibleOrders
+    .map((o, index) => {
+      const rowNumber = totalRows - ((p.page - 1) * PAGE_SIZE + index);
+
       const deadline = o.deadline || "";
+
       const diffDays = deadline
         ? (new Date(deadline) - new Date(today)) / 86400000
         : 999;
+
       const overdue = deadline && diffDays < 0 && o.stage !== "done";
+
       const urgent =
         deadline && diffDays >= 0 && diffDays <= 2 && o.stage !== "done";
+
       const avatar = getAvatarPalette(o.customer || "");
 
       return `
-        <tr>
+<tr>
 
-  <td>
+<td class="table-number">
+${rowNumber}
+</td>
 
-    <div
-      style="
-        display:flex;
-        align-items:center;
-        gap:12px;
-      "
-    >
+<td>
+
+<div class="table-customer">
 
 <div
-  style="
-    width:38px;
-    height:38px;
-    border-radius:50%;
-    background:${avatar.bg};
-    color:${avatar.text};
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:16px;
-    font-weight:700;
-    flex-shrink:0;
-    backdrop-filter:blur(10px);
-    border:1px solid rgba(255,255,255,0.06);
-  "
+class="table-avatar"
+style="
+background:${avatar.bg};
+color:${avatar.text};
+"
 >
-  <i class="ri-user-3-fill"></i>
+<i class="ri-user-3-fill"></i>
 </div>
 
-      <div
-        style="
-          display:flex;
-          flex-direction:column;
-          gap:2px;
-        "
-      >
+<div class="table-info">
 
-        <div
-          style="
-            font-size:13px;
-            font-weight:600;
-            color:var(--text-1);
-            line-height:1.2;
-          "
-        >
-          ${o.customer}
-        </div>
+<div class="table-title">
+${o.customer}
+</div>
 
-        <div
-          style="
-            font-size:13px;
-            font-weight:700;
-            color:var(--text-3);
-            line-height:1;
-          "
-        >
-          ${new Date(o.created).toLocaleDateString("id-ID")}
-        </div>
+<div class="table-subtitle">
+${
+  o.createdAt?.seconds
+    ? new Date(o.createdAt.seconds * 1000).toLocaleDateString("id-ID")
+    : "-"
+}
+</div>
 
-      </div>
+</div>
 
-    </div>
+</div>
 
-  </td>
+</td>
 
-  <td>
+<td>
 
-    <div
-      style="
-        font-size:13px;
-        font-weight:700;
-        color:var(--text-1);
-        line-height:1.3;
-      "
-    >
-      ${o.design}
-    </div>
+<div class="table-title">
+${o.design}
+</div>
 
-  </td>
+</td>
 
-  <td>
+<td>
 
-    <span
-      style="
-        background:var(--input-bg);
-        padding:5px 10px;
-        border-radius:12px;
-        font-size:13px;
-        font-weight:700;
-        color:var(--text-2);
-        display:inline-flex;
-        align-items:center;
-      "
-    >
-      ${o.jenis || "-"}
-    </span>
+<span class="table-tag">
+${o.jenis || "-"}
+</span>
 
-  </td>
+</td>
 
-  <td>
+<td>
 
-    <div
-      style="
-        display:inline-flex;
-        align-items:center;
-        gap:6px;
-        font-size:13px;
-        font-weight:700;
-        color:${
-          overdue ? "var(--red)" : urgent ? "var(--yellow)" : "var(--text-2)"
-        };
-      "
-    >
+<div
+class="table-deadline"
+style="
+color:${overdue ? "var(--red)" : urgent ? "var(--yellow)" : "var(--text-2)"};
+"
+>
 
-      <i
-        class="${
-          overdue
-            ? "ri-alarm-warning-fill"
-            : urgent
-              ? "ri-time-fill"
-              : "ri-calendar-line"
-        }"
-        style="font-size:14px;"
-      ></i>
+<i
+class="${
+        overdue
+          ? "ri-alarm-warning-fill"
+          : urgent
+            ? "ri-time-fill"
+            : "ri-calendar-line"
+      }"
+></i>
 
-      ${overdue ? "Terlambat" : deadline || "-"}
+${overdue ? "Terlambat" : deadline || "-"}
 
-    </div>
+</div>
 
-  </td>
+</td>
 
-  <td>
+<td>
 
-    <span
-      class="badge-status ${statusBadge[o.stage]}"
-      style="
-        font-size:13px;
-        font-weight:700;
-      "
-    >
-      ${statusLabel[o.stage]}
-    </span>
+<span class="badge-status ${statusBadge[o.stage]}">
+${statusLabel[o.stage]}
+</span>
 
-  </td>
+</td>
 
-  <td style="text-align:right;">
+<td class="table-action">
 
-    <div class="design-actions">
+<div class="table-actions">
 
-      <button
-        class="btn btn-ghost btn-sm btn-icon-round"
-        onclick="prevDesignStage('${o.id}')"
-      >
-        <i class="ri-arrow-left-line"></i>
-      </button>
+<button
+class="btn btn-ghost btn-sm btn-icon-round"
+onclick="prevDesignStage('${o.id}')">
+<i class="ri-arrow-left-line"></i>
+</button>
 
-      ${
-        o.stage !== "done"
-          ? `
-        <button
-          class="btn btn-solid btn-sm btn-icon-round"
-          onclick="advanceDesignStage('${o.id}')"
-        >
-          <i class="ri-arrow-right-line"></i>
-        </button>
-      `
-          : ""
-      }
+${
+  o.stage !== "done"
+    ? `
+<button
+class="btn btn-solid btn-sm btn-icon-round"
+onclick="advanceDesignStage('${o.id}')">
+<i class="ri-arrow-right-line"></i>
+</button>
+`
+    : ""
+}
 
-      <button
-        class="btn btn-green btn-sm btn-icon-round"
-        onclick="markDesignDone('${o.id}')"
-      >
-        <i class="ri-check-line"></i>
-      </button>
+<button
+class="btn btn-green btn-sm btn-icon-round"
+onclick="markDesignDone('${o.id}')">
+<i class="ri-check-line"></i>
+</button>
 
-      <button
-        class="btn btn-ghost btn-sm btn-icon-round"
-        onclick="openEditDesign('${o.id}')"
-      >
-        <i class="ri-edit-line"></i>
-      </button>
+<button
+class="btn btn-ghost btn-sm btn-icon-round"
+onclick="openEditDesign('${o.id}')">
+<i class="ri-edit-line"></i>
+</button>
 
-      <button
-        class="btn btn-red btn-sm btn-icon-round"
-        onclick="deleteDesignOrder('${o.id}')"
-      >
-        <i class="ri-delete-bin-line"></i>
-      </button>
+<button
+class="btn btn-red btn-sm btn-icon-round"
+onclick="deleteDesignOrder('${o.id}')">
+<i class="ri-delete-bin-line"></i>
+</button>
 
-    </div>
+</div>
 
-  </td>
+</td>
 
-</tr>`;
+</tr>
+`;
     })
     .join("");
+
   if (mobileList) {
-    mobileList.innerHTML = orders
+    mobileList.innerHTML = visibleOrders
       .map((o) => {
         const deadline = o.deadline || "";
 
@@ -705,113 +683,117 @@ function renderDesignOrders() {
 
         return `
 
-        <div class="design-mobile-card">
+<div class="design-mobile-card">
 
 <div class="design-mobile-head">
 
-  <div>
+<div>
 
-    <div class="design-mobile-customer">
-      ${o.customer}
-    </div>
+<div class="design-mobile-customer">
+${o.customer}
+</div>
 
-    <div class="design-mobile-title">
-      ${o.design}
-    </div>
-
-  </div>
-
-  <span
-    class="badge-status ${statusBadge[o.stage]}"
-  >
-    ${statusLabel[o.stage]}
-  </span>
+<div class="design-mobile-title">
+${o.design}
+</div>
 
 </div>
 
+<span class="badge-status ${statusBadge[o.stage]}">
+${statusLabel[o.stage]}
+</span>
 
+</div>
 
-          <div class="design-mobile-meta">
+<div class="mobile-meta">
 
-            <div class="design-mobile-meta-item">
-              <i class="ri-price-tag-3-line"></i>
-              ${o.jenis || "-"}
-            </div>
+<div class="mobile-meta-item">
+<i class="ri-price-tag-3-line"></i>
+<span>${o.jenis || "-"}</span>
+</div>
 
-            <div
-              class="design-mobile-meta-item"
-              style="
-                color:${
-                  overdue
-                    ? "var(--red)"
-                    : urgent
-                      ? "var(--yellow)"
-                      : "var(--text-2)"
-                };
-              "
-            >
-              <i class="ri-calendar-line"></i>
+<div
+class="mobile-meta-item ${
+          overdue ? "mobile-meta-danger" : urgent ? "mobile-meta-warning" : ""
+        }"
+>
 
-              ${overdue ? "Terlambat" : deadline || "-"}
+<i
+class="${
+          overdue
+            ? "ri-alarm-warning-fill"
+            : urgent
+              ? "ri-error-warning-line"
+              : "ri-calendar-line"
+        }"
+></i>
 
-            </div>
+<span>
+${overdue ? "Terlambat" : deadline || "-"}
+</span>
 
-          </div>
+</div>
 
-          <div class="design-actions">
+</div>
 
-            <button
-              class="btn btn-ghost btn-sm btn-icon-round"
-              onclick="prevDesignStage('${o.id}')"
-            >
-              <i class="ri-arrow-left-line"></i>
-            </button>
+<div class="design-actions">
 
-            ${
-              o.stage !== "done"
-                ? `
-                <button
-                  class="btn btn-solid btn-sm btn-icon-round"
-                  onclick="advanceDesignStage('${o.id}')"
-                >
-                  <i class="ri-arrow-right-line"></i>
-                </button>
-              `
-                : ""
-            }
+<button
+class="btn btn-ghost btn-sm btn-icon-round"
+onclick="prevDesignStage('${o.id}')">
+<i class="ri-arrow-left-line"></i>
+</button>
 
-            <button
-              class="btn btn-green btn-sm btn-icon-round"
-              onclick="markDesignDone('${o.id}')"
-            >
-              <i class="ri-check-line"></i>
-            </button>
+${
+  o.stage !== "done"
+    ? `
+<button
+class="btn btn-solid btn-sm btn-icon-round"
+onclick="advanceDesignStage('${o.id}')">
+<i class="ri-arrow-right-line"></i>
+</button>
+`
+    : ""
+}
 
-            <button
-              class="btn btn-ghost btn-sm btn-icon-round"
-              onclick="openEditDesign('${o.id}')"
-            >
-              <i class="ri-edit-line"></i>
-            </button>
+<button
+class="btn btn-green btn-sm btn-icon-round"
+onclick="markDesignDone('${o.id}')">
+<i class="ri-check-line"></i>
+</button>
 
-            <button
-              class="btn btn-red btn-sm btn-icon-round"
-              onclick="deleteDesignOrder('${o.id}')"
-            >
-              <i class="ri-delete-bin-line"></i>
-            </button>
+<button
+class="btn btn-ghost btn-sm btn-icon-round"
+onclick="openEditDesign('${o.id}')">
+<i class="ri-edit-line"></i>
+</button>
 
-          </div>
+<button
+class="btn btn-red btn-sm btn-icon-round"
+onclick="deleteDesignOrder('${o.id}')">
+<i class="ri-delete-bin-line"></i>
+</button>
 
-        </div>
+</div>
 
-      `;
+</div>
+
+`;
       })
       .join("");
   }
+
+  renderPagination(
+    "design-pagination",
+    p.page,
+    p.totalPages,
+    "changeDesignPage",
+    totalRows,
+  );
 }
 
 /* ============================================================= */
+
 /* ---------------- PRODUCTION ORDERS -------------------------- */
 /* ============================================================= */
 function getProductionOrders() {
@@ -1027,103 +1009,426 @@ window.saveProductionNote = function () {
 };
 function renderProductionOrders() {
   let orders = getProductionOrders();
-  orders = [...orders].sort((a, b) => {
-    if (a.stage === "done" && b.stage !== "done") {
-      return 1;
-    }
 
-    if (a.stage !== "done" && b.stage === "done") {
-      return -1;
-    }
-    const aTime = a.createdAt?.seconds || 0;
-    const bTime = b.createdAt?.seconds || 0;
-    return bTime - aTime;
-  });
-  if (app.productionStageFilter)
-    orders = orders.filter((o) => o.stage === app.productionStageFilter);
-  const filter = document.getElementById("production-filter")?.value || "all";
+  const tbody = document.getElementById("production-tbody");
+  const mobileList = document.getElementById("production-mobile-list");
+
+  if (!tbody) return;
+
   const today = getToday();
 
-  if (filter === "done") orders = orders.filter((o) => o.stage === "done");
-  if (filter === "progress") orders = orders.filter((o) => o.stage !== "done");
-  if (filter === "urgent")
+  // ===========================
+  // SORT
+  // ===========================
+  orders = [...orders].sort((a, b) => {
+    if (a.stage === "done" && b.stage !== "done") return 1;
+    if (a.stage !== "done" && b.stage === "done") return -1;
+
+    const aTime = a.createdAt?.seconds || 0;
+    const bTime = b.createdAt?.seconds || 0;
+
+    return bTime - aTime;
+  });
+
+  // ===========================
+  // SEARCH
+  // ===========================
+  const search = (
+    document.getElementById("production-search")?.value || ""
+  ).toLowerCase();
+
+  if (search) {
     orders = orders.filter(
       (o) =>
-        o.deadline &&
-        (new Date(o.deadline) - new Date(today)) / 86400000 <= 2 &&
-        new Date(o.deadline) - new Date(today) >= 0 &&
-        o.stage !== "done",
+        (o.customer || "").toLowerCase().includes(search) ||
+        (o.team || "").toLowerCase().includes(search) ||
+        (o.material || "").toLowerCase().includes(search),
     );
-  if (filter === "overdue")
+  }
+
+  // ===========================
+  // FILTER
+  // ===========================
+  const filter = document.getElementById("production-filter")?.value || "all";
+
+  if (filter === "progress") {
+    orders = orders.filter((o) => o.stage !== "done");
+  }
+
+  if (filter === "done") {
+    orders = orders.filter((o) => o.stage === "done");
+  }
+
+  if (filter === "overdue") {
     orders = orders.filter(
       (o) => o.deadline && o.deadline < today && o.stage !== "done",
     );
+  }
 
-  const grid = document.getElementById("production-grid");
-  if (!orders.length) {
-    grid.innerHTML = `<div class="card card-solid" style="grid-column:1/-1"><div class="empty-state"><i class="ri-tools-line"></i>Tidak ada pesanan produksi</div></div>`;
+  if (filter === "urgent") {
+    orders = orders.filter((o) => {
+      if (!o.deadline || o.stage === "done") return false;
+
+      const diff = (new Date(o.deadline) - new Date(today)) / 86400000;
+
+      return diff >= 0 && diff <= 2;
+    });
+  }
+
+  if (app.productionStageFilter) {
+    orders = orders.filter((o) => o.stage === app.productionStageFilter);
+  }
+
+  const totalRows = orders.length;
+
+  const p = paginate(orders, pagination.productionOrders);
+
+  const visibleOrders = p.items;
+
+  // ===========================
+  // EMPTY
+  // ===========================
+  if (!visibleOrders.length) {
+    tbody.innerHTML = `
+<tr>
+<td colspan="7">
+<div class="empty-state">
+<i class="ri-inbox-line"></i>
+Belum ada pesanan produksi
+</div>
+</td>
+</tr>
+`;
+
+    if (mobileList) mobileList.innerHTML = "";
+
     return;
   }
 
-  grid.innerHTML = orders
-    .map((o) => {
-      const progress = Math.round(
-        (PRODUCTION_STAGES.indexOf(o.stage) / (PRODUCTION_STAGES.length - 1)) *
-          100,
-      );
-      const diff = o.deadline
-        ? (new Date(o.deadline) - new Date(today)) / 86400000
+  // ===========================
+  // STATUS
+  // ===========================
+  const statusClass = {
+    design: "badge-design",
+    printing: "badge-revisi",
+    jahit: "badge-revisi",
+    qc: "badge-revisi",
+    done: "badge-done",
+  };
+
+  const statusLabel = {
+    design: "Desain",
+    printing: "Printing",
+    jahit: "Jahit",
+    qc: "QC",
+    done: "Selesai",
+  };
+
+  // ===========================
+  // TABLE
+  // ===========================
+  tbody.innerHTML = visibleOrders
+    .map((o, index) => {
+      const rowNumber = totalRows - ((p.page - 1) * PAGE_SIZE + index);
+      const deadline = o.deadline || "";
+
+      const diff = deadline
+        ? (new Date(deadline) - new Date(today)) / 86400000
         : 999;
-      const overdue = diff < 0 && o.stage !== "done";
-      const urgent = diff >= 0 && diff <= 2 && o.stage !== "done";
-      const cardClass =
-        o.stage === "done"
-          ? "done-card"
-          : overdue
-            ? "overdue"
-            : urgent
-              ? "urgent"
-              : "normal";
+
+      const overdue = deadline && diff < 0 && o.stage !== "done";
+
+      const urgent = deadline && diff >= 0 && diff <= 2 && o.stage !== "done";
+
+      const avatar = getAvatarPalette(o.customer || "");
 
       return `
-        <div class="production-card ${cardClass}">
-          <div class="production-head">
-            <div><div class="production-name">${o.customer}</div><div class="production-team">${o.team || "Tidak ada tim"}</div></div>
-            <div style="font-size:11px; font-weight:600; padding:4px 10px; border-radius:12px; background:var(--input-bg);">${o.stage.toUpperCase()}</div>
-          </div>
-          <div class="production-meta">
-            <div class="production-meta-item"><i class="ri-stack-line"></i>${o.qty || 0} pcs</div>
-            <div class="production-meta-item"><i class="ri-t-shirt-2-line"></i>${(
-              o.material || "-"
-            )
-              .toString()
-              .replace(/^./, (c) => c.toUpperCase())}</div>
-            <div class="production-meta-item" style="color: ${overdue ? "var(--red)" : urgent ? "var(--yellow)" : "inherit"}; font-weight:${overdue || urgent ? "600" : "normal"}"><i class="${overdue ? "ri-alarm-warning-fill" : "ri-calendar-line"}"></i>${overdue ? "Terlambat · " : urgent ? "Mendesak · " : ""}${o.deadline || "-"}</div>
-          </div>
-          <div class="production-progress-wrap">
-            <div class="production-progress-head"><div class="production-progress-label">Progres Produksi</div><div font-weight:600; font-size:12px;">${progress}%</div></div>
-            <div class="production-progress-bar"><div class="production-progress-fill ${urgent || overdue ? "warn" : ""}" style="width:${progress}%"></div></div>
-          </div>
-          <div style="background:var(--input-bg); border-radius:var(--r-sm); padding:10px; font-size:12px;">
-            ${o.notes ? `<div style="color:var(--text-1)">${o.notes}</div>` : `<div style="color:var(--text-3)">Tidak ada catatan produksi</div>`}
-          </div>
-          <div class="production-actions">
-            <button class="btn btn-ghost btn-sm btn-icon-round" onclick="prevProductionStage('${o.id}')"><i class="ri-arrow-left-line"></i></button>
-            <button class="btn btn-solid btn-sm btn-icon-round" onclick="nextProductionStage('${o.id}')"><i class="ri-arrow-right-line"></i></button>
-            <button class="btn btn-green btn-sm btn-icon-round" onclick="markProductionDone('${o.id}')"><i class="ri-check-line"></i></button>
-            <button class="btn btn-yellow btn-sm btn-icon-round" onclick="openProductionNote('${o.id}')"><i class="ri-sticky-note-line"></i></button>
-            <button class="btn btn-ghost btn-sm btn-icon-round" onclick="openEditProduction('${o.id}')"><i class="ri-edit-line"></i></button>
-            <button class="btn btn-red btn-sm btn-icon-round" onclick="deleteProductionOrder('${o.id}')"><i class="ri-delete-bin-line"></i></button>
-          </div>
-        </div>`;
+<tr>
+
+<td class="table-number">
+${rowNumber}
+</td>
+
+  <td>
+
+    <div class="table-customer">
+
+      <div
+        class="table-avatar"
+        style="
+          background:${avatar.bg};
+          color:${avatar.text};
+        "
+      >
+        <i class="ri-user-3-fill"></i>
+      </div>
+
+      <div class="table-info">
+
+        <div class="table-title">
+          ${o.customer}
+        </div>
+
+        <div class="table-subtitle">
+${
+  o.createdAt?.seconds
+    ? new Date(o.createdAt.seconds * 1000).toLocaleDateString("id-ID")
+    : "-"
+}
+        </div>
+
+      </div>
+
+    </div>
+
+  </td>
+
+  <td>
+
+    <div class="table-title">
+      ${o.team || "-"}
+    </div>
+
+  </td>
+
+  <td>
+
+    <div class="table-title">
+      ${o.qty || "-"}
+    </div>
+
+  </td>
+
+  <td>
+
+    <span class="table-tag">
+      ${o.material || "-"}
+    </span>
+
+  </td>
+
+  <td>
+
+    <div
+      class="table-deadline"
+      style="
+        color:${
+          overdue ? "var(--red)" : urgent ? "var(--yellow)" : "var(--text-2)"
+        };
+      "
+    >
+
+<i
+  class="${
+    overdue
+      ? "ri-alarm-warning-fill"
+      : urgent
+        ? "ri-error-warning-line"
+        : "ri-calendar-line"
+  }"
+></i>
+
+      ${overdue ? "Terlambat" : deadline || "-"}
+
+    </div>
+
+  </td>
+
+  <td>
+
+    <span class="badge-status ${statusClass[o.stage]}">
+      ${statusLabel[o.stage]}
+    </span>
+
+  </td>
+
+  <td class="table-action">
+
+    <div class="table-actions">
+
+      <button
+        class="btn btn-ghost btn-sm btn-icon-round"
+        onclick="prevProductionStage('${o.id}')"
+      >
+        <i class="ri-arrow-left-line"></i>
+      </button>
+
+      ${
+        o.stage !== "done"
+          ? `
+      <button
+        class="btn btn-solid btn-sm btn-icon-round"
+        onclick="nextProductionStage('${o.id}')"
+      >
+        <i class="ri-arrow-right-line"></i>
+      </button>
+      `
+          : ""
+      }
+
+      <button
+        class="btn btn-green btn-sm btn-icon-round"
+        onclick="markProductionDone('${o.id}')"
+      >
+        <i class="ri-check-line"></i>
+      </button>
+
+      <button
+        class="btn btn-ghost btn-sm btn-icon-round"
+        onclick="openEditProduction('${o.id}')"
+      >
+        <i class="ri-edit-line"></i>
+      </button>
+
+      <button
+        class="btn btn-red btn-sm btn-icon-round"
+        onclick="deleteProductionOrder('${o.id}')"
+      >
+        <i class="ri-delete-bin-line"></i>
+      </button>
+
+    </div>
+
+  </td>
+
+</tr>
+`;
     })
     .join("");
+
+  if (mobileList) {
+    mobileList.innerHTML = visibleOrders
+      .map((o, index) => {
+        const rowNumber = totalRows - ((p.page - 1) * PAGE_SIZE + index);
+        const deadline = o.deadline || "";
+
+        const diff = deadline
+          ? (new Date(deadline) - new Date(today)) / 86400000
+          : 999;
+
+        const overdue = deadline && diff < 0 && o.stage !== "done";
+
+        const urgent = deadline && diff >= 0 && diff <= 2 && o.stage !== "done";
+
+        return `
+
+<div class="design-mobile-card">
+
+  <div class="design-mobile-head">
+
+    <div>
+
+      <div class="design-mobile-customer">
+        ${o.customer}
+      </div>
+
+      <div class="design-mobile-title">
+        ${o.team || "-"}
+      </div>
+
+    </div>
+
+    <span class="badge-status ${statusClass[o.stage]}">
+      ${statusLabel[o.stage]}
+    </span>
+
+  </div>
+
+  <div class="mobile-meta">
+
+    <div class="mobile-meta-item">
+      <i class="ri-t-shirt-2-line"></i>
+      <span>${o.material || "-"}</span>
+    </div>
+
+    <div class="mobile-meta-item">
+      <i class="ri-stack-line"></i>
+      <span>${o.qty || "-"} pcs</span>
+    </div>
+
+    <div
+      class="mobile-meta-item
+      ${overdue ? "mobile-meta-danger" : urgent ? "mobile-meta-warning" : ""}"
+    >
+<i
+  class="${
+    overdue
+      ? "ri-alarm-warning-fill"
+      : urgent
+        ? "ri-error-warning-line"
+        : "ri-calendar-line"
+  }"
+></i>
+      <span>${overdue ? "Terlambat" : deadline || "-"}</span>
+    </div>
+
+  </div>
+
+  <div class="design-actions">
+
+    <button
+      class="btn btn-ghost btn-sm btn-icon-round"
+      onclick="prevProductionStage('${o.id}')"
+    >
+      <i class="ri-arrow-left-line"></i>
+    </button>
+
+    ${
+      o.stage !== "done"
+        ? `
+    <button
+      class="btn btn-solid btn-sm btn-icon-round"
+      onclick="nextProductionStage('${o.id}')"
+    >
+      <i class="ri-arrow-right-line"></i>
+    </button>
+    `
+        : ""
+    }
+
+    <button
+      class="btn btn-green btn-sm btn-icon-round"
+      onclick="markProductionDone('${o.id}')"
+    >
+      <i class="ri-check-line"></i>
+    </button>
+
+    <button
+      class="btn btn-ghost btn-sm btn-icon-round"
+      onclick="openEditProduction('${o.id}')"
+    >
+      <i class="ri-edit-line"></i>
+    </button>
+
+    <button
+      class="btn btn-red btn-sm btn-icon-round"
+      onclick="deleteProductionOrder('${o.id}')"
+    >
+      <i class="ri-delete-bin-line"></i>
+    </button>
+
+  </div>
+
+</div>
+
+`;
+      })
+      .join("");
+  }
+  renderPagination(
+    "production-pagination",
+    p.page,
+    p.totalPages,
+    "changeProductionPage",
+    totalRows,
+  );
 }
 window.updateProductionPipeline = updateProductionPipeline;
 
 window.renderProductionOrders = renderProductionOrders;
 
 /* ============================================================= */
+
 /* ---------------------- TASKS -------------------------------- */
 /* ============================================================= */
 function getTasks() {
@@ -1201,6 +1506,7 @@ function renderTasks() {
 }
 
 /* ============================================================= */
+
 /* ---------------------- COST ESTIMATOR ---------------------- */
 /* ============================================================= */
 function resetCard(ids) {
@@ -1269,7 +1575,7 @@ function tambahItem(data = {}) {
   wrap.className = "extra-item";
 
   wrap.innerHTML = `
-  
+
     <div class="extra-grid">
 
       <input
@@ -1315,12 +1621,12 @@ function tambahItem(data = {}) {
         <i class="ri-delete-bin-line"></i>
       </button>
 
-
     </div>
 
   `;
 
   document.getElementById("extraItems").appendChild(wrap);
+
   /* ---------------- SCROLL EFFECT ---------------- */
 
   requestAnimationFrame(() => {
@@ -1585,6 +1891,7 @@ function hitungEstimasi() {
 }
 
 /* ============================================================= */
+
 /* ---------------------- CHARTS -------------------------------- */
 /* ============================================================= */
 function getChartTheme() {
@@ -1685,6 +1992,7 @@ function updateCharts() {
 }
 
 /* ============================================================= */
+
 /* ---------------------- HISTORY & AUTOSAVE ------------------- */
 /* ============================================================= */
 let autoSaveTimer = null;
@@ -1776,8 +2084,6 @@ async function loadAuto() {
   /* ===================================================== */
 
   hitung();
-
-  showToast("Draft estimasi dipulihkan", "info");
 }
 
 async function saveHistory() {
@@ -2038,6 +2344,7 @@ function toggleCustomerSort(type) {
 
 function renderCostingHistory() {
   const tbody = document.getElementById("costing-history-tbody");
+  const mobileList = document.getElementById("costing-history-mobile-list");
 
   if (!tbody) return;
 
@@ -2075,9 +2382,15 @@ function renderCostingHistory() {
     );
   }
 
+  const totalRows = histories.length;
+
+  const p = paginate(histories, pagination.costingHistory);
+
+  const visibleHistories = p.items;
+
   // ---------------- EMPTY ----------------
 
-  if (!histories.length) {
+  if (!visibleHistories.length) {
     tbody.innerHTML = `
       <tr>
 
@@ -2102,58 +2415,39 @@ function renderCostingHistory() {
   // ---------------- RENDER ----------------
   /* ===================================================== */
 
-  tbody.innerHTML = histories
-    .map((o, i) => {
+  tbody.innerHTML = visibleHistories
+    .map((o, index) => {
+      const rowNumber = totalRows - ((p.page - 1) * PAGE_SIZE + index);
       const profit = Number(o.totalProfit || 0);
       const avatar = getAvatarPalette(o.customer || "");
       return `
 
-  <tr>
+<tr>
+
+<td class="table-number">
+${rowNumber}
+</td>
 
   <td>
 
-    <div
-      style="
-        display:flex;
-        align-items:center;
-        gap:12px;
-      "
-    >
+    <div class="table-customer">
 
       <div
+        class="table-avatar"
         style="
-          width:34px;
-          height:34px;
-          border-radius:50%;
           background:${avatar.bg};
           color:${avatar.text};
-
-          display:flex;
-          align-items:center;
-          justify-content:center;
-
-          flex-shrink:0;
-
-          font-size:14px;
-          font-weight:600;
-
-          backdrop-filter:blur(10px);
-
-          border:1px solid rgba(255,255,255,0.06);
         "
       >
         <i class="ri-user-3-fill"></i>
       </div>
 
-      <div
-        style="
-          font-size:12px;
-          font-weight:600;
-          line-height:1.2;
-          color:var(--text-1);
-        "
-      >
-        ${o.customer || "-"}
+      <div class="table-info">
+
+        <div class="table-title">
+          ${o.customer || "-"}
+        </div>
+
       </div>
 
     </div>
@@ -2162,13 +2456,7 @@ function renderCostingHistory() {
 
   <td>
 
-    <div
-      style="
-        font-size:12px;
-        font-weight:600;
-        line-height:1.2;
-      "
-    >
+    <div class="table-title">
       ${o.team || "-"}
     </div>
 
@@ -2176,13 +2464,7 @@ function renderCostingHistory() {
 
   <td>
 
-    <div
-      style="
-        font-size:12px;
-        font-weight:600;
-        line-height:1.2;
-      "
-    >
+    <div class="table-title">
       ${o.qty || 0} pcs
     </div>
 
@@ -2190,13 +2472,7 @@ function renderCostingHistory() {
 
   <td>
 
-    <div
-      style="
-        font-size:12px;
-        font-weight:600;
-        line-height:1.2;
-      "
-    >
+    <div class="table-title">
       Rp${Number(o.hppPcs || 0).toLocaleString("id-ID")}
     </div>
 
@@ -2204,13 +2480,7 @@ function renderCostingHistory() {
 
   <td>
 
-    <div
-      style="
-        font-size:12px;
-        font-weight:600;
-        line-height:1.2;
-      "
-    >
+    <div class="table-title">
       Rp${Number(o.hargaJual || 0).toLocaleString("id-ID")}
     </div>
 
@@ -2219,10 +2489,8 @@ function renderCostingHistory() {
   <td>
 
     <div
+      class="table-title"
       style="
-        font-size:12px;
-        font-weight:700;
-        line-height:1.2;
         color:${profit >= 0 ? "var(--green)" : "var(--red)"};
       "
     >
@@ -2233,29 +2501,15 @@ function renderCostingHistory() {
 
   <td>
 
-    <div
-      style="
-        font-size:12px;
-        font-weight:500;
-        line-height:1.2;
-        color:var(--text-3);
-      "
-    >
+    <div class="table-subtitle">
       ${o.created ? new Date(o.created).toLocaleDateString("id-ID") : "-"}
     </div>
 
   </td>
 
-  <td style="text-align:right;">
+  <td class="table-action">
 
-    <div
-      style="
-        display:flex;
-        justify-content:flex-end;
-        align-items:center;
-        gap:8px;
-      "
-    >
+    <div class="table-actions">
 
       <button
         class="btn btn-ghost btn-sm btn-icon-round"
@@ -2277,16 +2531,100 @@ function renderCostingHistory() {
 
 </tr>
 
-  `;
+`;
     })
     .join("");
+  if (mobileList) {
+    mobileList.innerHTML = visibleHistories
+      .map((o, index) => {
+        const rowNumber = totalRows - ((p.page - 1) * PAGE_SIZE + index);
+        const profit = Number(o.totalProfit || 0);
+
+        return `
+
+<div class="history-mobile-item">
+
+<div class="history-mobile-head">
+
+<div>
+
+<div class="history-mobile-customer">
+${o.customer || "-"}
+</div>
+
+<div class="history-mobile-title">
+${o.team || "-"}
+</div>
+
+</div>
+
+<div class="history-mobile-actions">
+
+<button
+class="btn btn-ghost btn-sm btn-icon-round"
+onclick="loadHistoryData('${o.id}')">
+<i class="ri-upload-2-line"></i>
+</button>
+
+<button
+class="btn btn-red btn-sm btn-icon-round"
+onclick="deleteHistory('${o.id}')">
+<i class="ri-delete-bin-line"></i>
+</button>
+
+</div>
+
+</div>
+
+<div class="mobile-meta">
+
+<div class="mobile-meta-item">
+<i class="ri-stack-line"></i>
+${o.qty || 0} pcs
+</div>
+
+<div class="mobile-meta-item">
+<i class="ri-money-dollar-circle-line"></i>
+Rp${Number(o.hppPcs || 0).toLocaleString("id-ID")}
+</div>
+
+<div class="mobile-meta-item">
+<i class="ri-line-chart-line"></i>
+<span class="${profit >= 0 ? "mobile-meta-success" : "mobile-meta-danger"}">
+Rp${profit.toLocaleString("id-ID")}
+</span>
+</div>
+
+<div class="mobile-meta-item">
+<i
+  class="mobile-meta-item"
+  }"
+></i>
+${o.created ? new Date(o.created).toLocaleDateString("id-ID") : "-"}
+</div>
+
+</div>
+
+</div>
+
+`;
+      })
+      .join("");
+  }
+  renderPagination(
+    "costing-history-pagination",
+    p.page,
+    p.totalPages,
+    "changeCostingHistoryPage",
+    totalRows,
+  );
 }
 
 function renderDesignHistory() {
   const tbody = document.getElementById("design-history-tbody");
+  const mobileList = document.getElementById("design-history-mobile-list");
 
   if (!tbody) return;
-
   let orders = [...(window.firebaseDesignOrders || [])];
   orders = orders.filter((o) => o.stage === "done");
   const search = (
@@ -2310,180 +2648,237 @@ function renderDesignHistory() {
     );
   }
 
+  const totalRows = orders.length;
+
+  const p = paginate(orders, pagination.designHistory);
+
+  const visibleOrders = p.items;
+
   // ---------------- EMPTY ----------------
 
-  if (!orders.length) {
+  if (!visibleOrders.length) {
     tbody.innerHTML = `
-      <tr>
-        <td colspan="5">
+    <tr>
+      <td colspan="5">
+        <div class="empty-state">
+          <i class="ri-file-list-3-line"></i>
+          Belum ada riwayat desain
+        </div>
+      </td>
+    </tr>
+  `;
 
-          <div class="empty-state">
-
-            <i class="ri-file-list-3-line"></i>
-
-            Belum ada riwayat desain
-
-          </div>
-
-        </td>
-      </tr>
+    if (mobileList) {
+      mobileList.innerHTML = `
+      <div class="empty-state">
+        <i class="ri-file-list-3-line"></i>
+        Belum ada riwayat desain
+      </div>
     `;
+    }
 
     return;
   }
 
   // ---------------- RENDER ----------------
-  tbody.innerHTML = orders
-    .map((o) => {
+  tbody.innerHTML = visibleOrders
+    .map((o, index) => {
+      const rowNumber = totalRows - ((p.page - 1) * PAGE_SIZE + index);
       const avatar = getAvatarPalette(o.customer || "");
 
       return `
 
-      <tr>
+<tr>
 
-        <td>
-
-          <div
-            style="
-              display:flex;
-              align-items:center;
-              gap:12px;
-            "
-          >
-
-<div
-  style="
-    width:34px;
-    height:34px;
-    border-radius:50%;
-    background:${avatar.bg};
-    color:${avatar.text};
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    flex-shrink:0;
-
-    font-size:16px;
-    font-weight:600;
-
-    backdrop-filter:blur(10px);
-
-    border:1px solid rgba(255,255,255,0.06);
-  "
->
-  <i class="ri-user-3-fill"></i>
-</div>
-
-            <div
-              style="
-                font-size:13px;
-                font-weight:600;
-              "
-            >
-              ${o.customer || "-"}
-            </div>
-
-          </div>
-
-        </td>
-
-        <td>
-
-          <div
-            style="
-              font-size:13px;
-              font-weight:600;
-            "
-          >
-            ${o.design || "-"}
-          </div>
-
-        </td>
-
-        <td>
-
-          <span
-            style="
-              background:var(--input-bg);
-              padding:5px 10px;
-              border-radius:12px;
-              font-size:11px;
-              font-weight:600;
-            "
-          >
-            ${o.jenis || "-"}
-          </span>
-
-        </td>
-
-<td>
-
-  <div
-    style="
-      font-size:12px;
-      color:var(--text-3);
-      font-weight:500;
-    "
-  >
-    ${
-      o.createdAt?.seconds
-        ? new Date(o.createdAt.seconds * 1000).toLocaleDateString("id-ID")
-        : "-"
-    }
-  </div>
-
+<td class="table-number">
+${rowNumber}
 </td>
 
-        <td style="text-align:right;">
+  <td>
 
-          <div
-            style="
-              display:flex;
-              justify-content:flex-end;
-              gap:8px;
-            "
-          >
+    <div class="table-customer">
 
-            <button
-              class="btn btn-ghost btn-sm btn-icon-round"
-              onclick="openEditDesign('${o.id}')"
-            >
-              <i class="ri-edit-line"></i>
-            </button>
+      <div
+        class="table-avatar"
+        style="
+          background:${avatar.bg};
+          color:${avatar.text};
+        "
+      >
+        <i class="ri-user-3-fill"></i>
+      </div>
 
-            <button
-              class="btn btn-red btn-sm btn-icon-round"
-              onclick="deleteDesignOrder('${o.id}')"
-            >
-              <i class="ri-delete-bin-line"></i>
-            </button>
+      <div class="table-info">
 
-          </div>
+        <div class="table-title">
+          ${o.customer || "-"}
+        </div>
 
-        </td>
+      </div>
 
-      </tr>
+    </div>
+
+  </td>
+
+  <td>
+
+    <div class="table-title">
+      ${o.design || "-"}
+    </div>
+
+  </td>
+
+  <td>
+
+    <span class="table-tag">
+      ${o.jenis || "-"}
+    </span>
+
+  </td>
+
+  <td>
+
+    <div class="table-subtitle">
+      ${
+        o.createdAt?.seconds
+          ? new Date(o.createdAt.seconds * 1000).toLocaleDateString("id-ID")
+          : "-"
+      }
+    </div>
+
+  </td>
+
+  <td class="table-action">
+
+    <div class="table-actions">
+
+      <button
+        class="btn btn-ghost btn-sm btn-icon-round"
+        onclick="openEditDesign('${o.id}')"
+      >
+        <i class="ri-edit-line"></i>
+      </button>
+
+      <button
+        class="btn btn-red btn-sm btn-icon-round"
+        onclick="deleteDesignOrder('${o.id}')"
+      >
+        <i class="ri-delete-bin-line"></i>
+      </button>
+
+    </div>
+
+  </td>
+
+</tr>
 
 `;
     })
     .join("");
+  if (mobileList) {
+    mobileList.innerHTML = visibleOrders
+      .map((o, index) => {
+        const rowNumber = totalRows - ((p.page - 1) * PAGE_SIZE + index);
+        return `
+
+<div class="history-mobile-item">
+
+  <div class="history-mobile-head">
+
+    <div>
+
+      <div class="history-mobile-customer">
+        ${o.customer || "-"}
+      </div>
+
+      <div class="history-mobile-title">
+        ${o.design || "-"}
+      </div>
+
+    </div>
+
+      <div class="history-mobile-actions">
+
+    <button
+      class="btn btn-ghost btn-sm btn-icon-round"
+      onclick="openEditDesign('${o.id}')"
+    >
+      <i class="ri-edit-line"></i>
+    </button>
+
+    <button
+      class="btn btn-red btn-sm btn-icon-round"
+      onclick="deleteDesignOrder('${o.id}')"
+    >
+      <i class="ri-delete-bin-line"></i>
+    </button>
+
+  </div>
+
+  </div>
+
+  <div class="mobile-meta">
+
+    <div class="mobile-meta-item">
+      <i class="ri-price-tag-3-line"></i>
+      <span>${o.jenis || "-"}</span>
+    </div>
+
+    <div class="mobile-meta-item">
+      <i
+        class="${
+          o.overdue
+            ? "ri-alarm-warning-fill"
+            : o.urgent
+              ? "ri-error-warning-line"
+              : "ri-calendar-line"
+        }"
+      ></i>
+      <span>
+        ${
+          o.createdAt?.seconds
+            ? new Date(o.createdAt.seconds * 1000).toLocaleDateString("id-ID")
+            : "-"
+        }
+      </span>
+    </div>
+
+  </div>
+
+</div>
+
+`;
+      })
+      .join("");
+  }
+  renderPagination(
+    "design-history-pagination",
+    p.page,
+    p.totalPages,
+    "changeDesignHistoryPage",
+    totalRows,
+  );
 }
 
 function renderProductionHistory() {
   const tbody = document.getElementById("production-history-tbody");
+  const mobileList = document.getElementById("production-history-mobile-list");
 
   if (!tbody) return;
 
   let orders = [...(window.firebaseProductionOrders || [])];
   orders = orders.filter((o) => o.stage === "done");
+
   const search = (
     document.getElementById("design-history-search")?.value || ""
   ).toLowerCase();
 
   if (customerSortModes.production === "default") {
-    orders.sort((a, b) => new Date(b.created || 0) - new Date(a.created || 0));
+    orders.sort((a, b) => {
+      const aTime = a.createdAt?.seconds || 0;
+      const bTime = b.createdAt?.seconds || 0;
+      return bTime - aTime;
+    });
   }
 
   if (customerSortModes.production === "az") {
@@ -2498,174 +2893,232 @@ function renderProductionHistory() {
     orders = orders.filter(
       (o) =>
         (o.customer || "").toLowerCase().includes(search) ||
-        (o.design || "").toLowerCase().includes(search) ||
-        (o.jenis || "").toLowerCase().includes(search),
+        (o.team || "").toLowerCase().includes(search) ||
+        (o.material || "").toLowerCase().includes(search),
     );
   }
+  const totalRows = orders.length;
+
+  const p = paginate(orders, pagination.productionHistory);
+
+  const visibleOrders = p.items;
 
   // ---------------- EMPTY ----------------
 
-  if (!orders.length) {
+  if (!visibleOrders.length) {
     tbody.innerHTML = `
       <tr>
-
-        <td colspan="5">
-
+        <td colspan="6">
           <div class="empty-state">
-
             <i class="ri-archive-stack-line"></i>
-
             Belum ada riwayat produksi
-
           </div>
-
         </td>
-
       </tr>
     `;
+
+    if (mobileList) {
+      mobileList.innerHTML = "";
+    }
 
     return;
   }
 
-  // ---------------- RENDER ----------------
-  tbody.innerHTML = orders
-    .map((o) => {
+  // ---------------- DESKTOP ----------------
+
+  tbody.innerHTML = visibleOrders
+    .map((o, index) => {
+      const rowNumber = totalRows - ((p.page - 1) * PAGE_SIZE + index);
       const avatar = getAvatarPalette(o.customer || "");
 
       return `
 
-      <tr>
+<tr>
 
-        <td>
+<td class="table-number">
+${rowNumber}
+</td>
 
-          <div
-            style="
-              display:flex;
-              align-items:center;
-              gap:12px;
-            "
-          >
+  <td>
 
-<div
-  style="
-    width:34px;
-    height:34px;
-    border-radius:50%;
-    background:${avatar.bg};
-    color:${avatar.text};
+    <div class="table-customer">
 
-    display:flex;
-    align-items:center;
-    justify-content:center;
+      <div
+        class="table-avatar"
+        style="
+          background:${avatar.bg};
+          color:${avatar.text};
+        "
+      >
+        <i class="ri-user-3-fill"></i>
+      </div>
 
-    flex-shrink:0;
+      <div class="table-info">
 
-    font-size:16px;
-    font-weight:600;
+        <div class="table-title">
+          ${o.customer || "-"}
+        </div>
 
-    backdrop-filter:blur(10px);
+      </div>
 
-    border:1px solid rgba(255,255,255,0.06);
-  "
->
-  <i class="ri-user-3-fill"></i>
-</div>
+    </div>
 
-            <div
-              style="
-                font-size:13px;
-                font-weight:600;
-              "
-            >
-              ${o.customer || "-"}
-            </div>
+  </td>
 
-          </div>
+  <td>
 
-        </td>
+    <div class="table-title">
+      ${o.team || "-"}
+    </div>
 
-        <td>
+  </td>
 
-          <div
-            style="
-              font-size:13px;
-              font-weight:600;
-            "
-          >
-            ${o.product || o.design || "-"}
-          </div>
+  <td>
 
-        </td>
+    <span class="table-tag">
+      ${o.material || "-"}
+    </span>
 
-        <td>
+  </td>
 
-          <span
-            style="
-              background:var(--input-bg);
-              padding:5px 10px;
-              border-radius:12px;
-              font-size:11px;
-              font-weight:600;
-            "
-          >
-            ${o.jenis || "-"}
-          </span>
+  <td>
 
-        </td>
+    <div class="table-title">
+      ${o.qty || "-"}
+    </div>
 
-        <td>
+  </td>
 
-          <div
-            style="
-              font-size:12px;
-              color:var(--text-3);
-              font-weight:500;
-            "
-          >
-            ${
-              o.createdAt?.seconds
-                ? new Date(o.createdAt.seconds * 1000).toLocaleDateString(
-                    "id-ID",
-                  )
-                : "-"
-            }
-          </div>
+  <td>
 
-        </td>
+    <div class="table-subtitle">
+      ${
+        o.createdAt?.seconds
+          ? new Date(o.createdAt.seconds * 1000).toLocaleDateString("id-ID")
+          : "-"
+      }
+    </div>
 
-        <td style="text-align:right;">
+  </td>
 
-          <div
-            style="
-              display:flex;
-              justify-content:flex-end;
-              gap:8px;
-            "
-          >
+  <td class="table-action">
 
-            <button
-              class="btn btn-ghost btn-sm btn-icon-round"
-              onclick="openEditProduction('${o.id}')"
-            >
-              <i class="ri-edit-line"></i>
-            </button>
+    <div class="table-actions">
 
-            <button
-              class="btn btn-red btn-sm btn-icon-round"
-              onclick="deleteProductionOrder('${o.id}')"
-            >
-              <i class="ri-delete-bin-line"></i>
-            </button>
+      <button
+        class="btn btn-ghost btn-sm btn-icon-round"
+        onclick="openEditProduction('${o.id}')"
+      >
+        <i class="ri-edit-line"></i>
+      </button>
 
-          </div>
+      <button
+        class="btn btn-red btn-sm btn-icon-round"
+        onclick="deleteProductionOrder('${o.id}')"
+      >
+        <i class="ri-delete-bin-line"></i>
+      </button>
 
-        </td>
+    </div>
 
-      </tr>
+  </td>
+
+</tr>
 
 `;
     })
     .join("");
+
+  // ---------------- MOBILE ----------------
+
+  if (mobileList) {
+    mobileList.innerHTML = visibleOrders
+      .map((o, index) => {
+        const rowNumber = totalRows - ((p.page - 1) * PAGE_SIZE + index);
+        return `
+
+<div class="history-mobile-item">
+
+  <div class="history-mobile-head">
+
+    <div>
+
+      <div class="history-mobile-customer">
+        ${o.customer || "-"}
+      </div>
+
+      <div class="history-mobile-title">
+        ${o.team || "-"}
+      </div>
+
+    </div>
+
+  <div class="history-mobile-actions">
+
+    <button
+      class="btn btn-ghost btn-sm btn-icon-round"
+      onclick="openEditProduction('${o.id}')"
+    >
+      <i class="ri-edit-line"></i>
+    </button>
+
+    <button
+      class="btn btn-red btn-sm btn-icon-round"
+      onclick="deleteProductionOrder('${o.id}')"
+    >
+      <i class="ri-delete-bin-line"></i>
+    </button>
+
+  </div>
+
+  </div>
+
+  <div class="mobile-meta">
+
+    <div class="mobile-meta-item">
+      <i class="ri-t-shirt-2-line"></i>
+      <span>${o.material || "-"}</span>
+    </div>
+
+    <div class="mobile-meta-item">
+      <i class="ri-stack-line"></i>
+      <span>${o.qty || "-"} pcs</span>
+    </div>
+
+    <div class="mobile-meta-item">
+      <i
+        class="${
+          o.overdue
+            ? "ri-alarm-warning-fill"
+            : o.urgent
+              ? "ri-error-warning-line"
+              : "ri-calendar-line"
+        }"
+      ></i>
+      <span>
+        ${
+          o.createdAt?.seconds
+            ? new Date(o.createdAt.seconds * 1000).toLocaleDateString("id-ID")
+            : "-"
+        }
+      </span>
+    </div>
+
+  </div>
+
+</div>
+
+`;
+      })
+      .join("");
+    renderPagination(
+      "production-history-pagination",
+      p.page,
+      p.totalPages,
+      "changeProductionHistoryPage",
+      totalRows,
+    );
+  }
 }
 function exportReport() {
   if (!confirm("Export laporan Excel sekarang?")) return;
@@ -2705,6 +3158,153 @@ function exportReport() {
   XLSX.writeFile(wb, `Progress_${customer}_${getToday()}.xlsx`);
   showToast("Laporan diekspor");
 }
+
+/* ============================================================= */
+
+/* ---------------------- PAGINATION ---------------------------- */
+/* ============================================================= */
+
+const PAGE_SIZE = 5;
+
+const pagination = {
+  designOrders: 1,
+  productionOrders: 1,
+  designHistory: 1,
+  productionHistory: 1,
+  costingHistory: 1,
+};
+
+function paginate(data, page) {
+  const totalPages = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
+
+  if (page > totalPages) page = totalPages;
+  if (page < 1) page = 1;
+
+  const start = (page - 1) * PAGE_SIZE;
+
+  return {
+    page,
+    totalPages,
+    start,
+    end: start + PAGE_SIZE,
+    items: data.slice(start, start + PAGE_SIZE),
+  };
+}
+
+function renderPagination(
+  containerId,
+  page,
+  totalPages,
+  callback,
+  totalItems = 0,
+) {
+  const el = document.getElementById(containerId);
+
+  if (!el) return;
+
+  if (totalPages <= 1) {
+    el.innerHTML = "";
+    return;
+  }
+
+  const startItem = (page - 1) * PAGE_SIZE + 1;
+  const endItem = Math.min(page * PAGE_SIZE, totalItems);
+
+  let html = `<div class="pagination-wrap">`;
+
+  // PREV
+  html += `
+<button
+class="btn btn-ghost btn-sm"
+${page === 1 ? "disabled" : ""}
+onclick="${callback}(${page - 1})">
+&lt;
+</button>
+`;
+
+  // PAGE NUMBER
+  for (let i = 1; i <= totalPages; i++) {
+    html += `
+<button
+class="btn ${i === page ? "btn-solid" : "btn-ghost"} btn-sm"
+onclick="${callback}(${i})">
+${i}
+</button>
+`;
+  }
+
+  // NEXT
+  html += `
+<button
+class="btn btn-ghost btn-sm"
+${page === totalPages ? "disabled" : ""}
+onclick="${callback}(${page + 1})">
+&gt;
+</button>
+`;
+
+  html += `
+</div>
+
+<div class="pagination-info">
+Menampilkan ${startItem}–${endItem} dari ${totalItems} data
+</div>
+`;
+
+  el.innerHTML = html;
+}
+
+window.changeDesignPage = function (page) {
+  pagination.designOrders = page;
+
+  renderDesignOrders();
+
+  document.getElementById("design-section")?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+};
+window.changeProductionPage = function (page) {
+  pagination.productionOrders = page;
+
+  renderProductionOrders();
+
+  document.getElementById("production-section")?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+};
+window.changeCostingHistoryPage = function (page) {
+  pagination.costingHistory = page;
+
+  renderHistory();
+
+  document.getElementById("history-section")?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+};
+window.changeDesignHistoryPage = function (page) {
+  pagination.designHistory = page;
+
+  renderDesignHistory();
+
+  document.getElementById("design-history-section")?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+};
+window.changeProductionHistoryPage = function (page) {
+  pagination.productionHistory = page;
+
+  renderProductionHistory();
+
+  document.getElementById("production-history-section")?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+};
+
 // =====================================================
 // IMPORT FIREBASE
 // =====================================================
@@ -2794,6 +3394,7 @@ const productionQuery = query(
 );
 
 onSnapshot(productionQuery, (snapshot) => {
+  window.firebaseProductionOrders = [];
   /* ===================================================== */
   /* COSTING HISTORY */
   /* ===================================================== */
@@ -2835,6 +3436,7 @@ onSnapshot(productionQuery, (snapshot) => {
 });
 
 /* ============================================================= */
+
 /* ---------------------- INIT --------------------------------- */
 /* ============================================================= */
 function init() {
@@ -2857,10 +3459,6 @@ function init() {
   if (poDeadline) poDeadline.value = getToday();
 
   setInterval(updateHero, 60000);
-  console.log(
-    "%cProgress Workspace",
-    "font-size:16px; font-weight:bold; color:#10b981;",
-  );
 }
 
 init();
