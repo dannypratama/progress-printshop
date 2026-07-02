@@ -248,22 +248,26 @@
           <table class="ws-table">
             <thead>
               <tr>
+                <th>No</th>
+
                 <th
                   onclick="toggleCustomerSort('designOrder')"
                   style="cursor: pointer"
                 >
                   Pelanggan
                 </th>
+
                 <th>Desain</th>
                 <th>Jenis</th>
                 <th>Batas Waktu</th>
                 <th>Status</th>
-                <th style="text-align: right; padding-right: 20px">Aksi</th>
+                <th>Aksi</th>
               </tr>
             </thead>
             <tbody id="design-tbody"></tbody>
           </table>
           <div id="design-mobile-list" class="design-mobile-list"></div>
+          <div class="pagination" id="design-pagination"></div>
         </div>
       </section>
 
@@ -329,34 +333,70 @@
 
       <!-- ==================================================== -->
       <!-- --------------- PRODUCTION ORDERS ------------------ -->
+      <!-- ==================================================== -->
       <section class="ws-section" id="production-section">
         <div class="ws-section-head">
           <div class="ws-section-title">
-            <div class="section-icon"><i class="ri-t-shirt-air-line"></i></div>
+            <div class="section-icon">
+              <i class="ri-t-shirt-air-line"></i>
+            </div>
             Pesanan Produksi
           </div>
+
           <div class="ws-section-actions">
             <select
               class="input"
               id="production-filter"
-              style="width: 160px"
+              style="width: 180px"
               onchange="renderProductionOrders()"
             >
               <option value="all">Semua Pesanan</option>
+              <option value="progress">Sedang Berjalan</option>
               <option value="urgent">Mendesak</option>
               <option value="overdue">Terlambat</option>
-              <option value="progress">Sedang Berjalan</option>
               <option value="done">Selesai</option>
             </select>
+
+            <div class="search-wrap" style="width: 220px">
+              <i class="search-icon ri-search-line"></i>
+              <input
+                class="input"
+                id="production-search"
+                placeholder="Cari produksi..."
+                oninput="renderProductionOrders()"
+              />
+            </div>
+
             <button
               class="btn btn-solid"
               onclick="openModal('modal-production')"
             >
-              <i class="ri-add-line"></i> Tambah Produksi
+              <i class="ri-add-line"></i>
+              Tambah Produksi
             </button>
           </div>
         </div>
-        <div id="production-grid" class="grid-auto"></div>
+
+        <div class="card card-solid" style="padding: 0; overflow: hidden">
+          <table class="ws-table">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Pelanggan</th>
+                <th>Tim</th>
+                <th>Qty</th>
+                <th>Bahan</th>
+                <th>Deadline</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+
+            <tbody id="production-tbody"></tbody>
+          </table>
+          <div id="production-mobile-list" class="design-mobile-list"></div>
+          <div id="production-pagination" class="pagination"></div>
+        </div>
       </section>
 
       <!-- ==================================================== -->
@@ -446,7 +486,7 @@
                 class="input"
                 id="customer"
                 placeholder="Nama Pelanggan"
-                onblur="titleCase(this)"
+                oninput="this.value = this.value.toUpperCase()"
               />
             </div>
             <div class="form-group">
@@ -455,7 +495,7 @@
                 class="input"
                 id="team"
                 placeholder="Klub / Tim"
-                onblur="titleCase(this)"
+                oninput="this.value = this.value.toUpperCase()"
               />
             </div>
             <div class="form-grid-2">
@@ -889,7 +929,7 @@
                 class="input"
                 id="ongkirKet"
                 placeholder="Catatan (opsional)"
-                onblur="titleCase(this)"
+                oninput="this.value = this.value.toUpperCase()"
               />
               <div class="mat-card-results">
                 <div class="result-row">
@@ -1113,6 +1153,7 @@
             <table class="ws-table">
               <thead>
                 <tr>
+                  <th>No</th>
                   <th
                     onclick="toggleCustomerSort('costing')"
                     style="cursor: pointer"
@@ -1132,12 +1173,17 @@
 
                   <th>Tanggal</th>
 
-                  <th style="text-align: right">Aksi</th>
+                  <th>Aksi</th>
                 </tr>
               </thead>
 
               <tbody id="costing-history-tbody"></tbody>
             </table>
+            <div
+              id="costing-history-mobile-list"
+              class="history-mobile-list"
+            ></div>
+            <div id="costing-history-pagination" class="pagination"></div>
           </div>
         </div>
       </section>
@@ -1174,6 +1220,7 @@
             <table class="ws-table">
               <thead>
                 <tr>
+                  <th>No</th>
                   <th
                     onclick="toggleCustomerSort('design')"
                     style="cursor: pointer"
@@ -1186,12 +1233,17 @@
 
                   <th>Tanggal Order</th>
 
-                  <th style="text-align: right">Aksi</th>
+                  <th>Aksi</th>
                 </tr>
               </thead>
 
               <tbody id="design-history-tbody"></tbody>
             </table>
+            <div
+              id="design-history-mobile-list"
+              class="history-mobile-list"
+            ></div>
+            <div id="design-history-pagination" class="pagination"></div>
           </div>
         </div>
       </section>
@@ -1227,24 +1279,28 @@
             <table class="ws-table">
               <thead>
                 <tr>
+                  <th>No</th>
                   <th
                     onclick="toggleCustomerSort('production')"
                     style="cursor: pointer"
                   >
                     Pelanggan
                   </th>
-                  <th>Produk</th>
-
-                  <th>Jenis</th>
-
+                  <th>Nama Tim</th>
+                  <th>Bahan</th>
+                  <th>Qty</th>
                   <th>Tanggal Order</th>
-
-                  <th style="text-align: right">Aksi</th>
+                  <th>Aksi</th>
                 </tr>
               </thead>
 
               <tbody id="production-history-tbody"></tbody>
             </table>
+            <div
+              id="production-history-mobile-list"
+              class="history-mobile-list"
+            ></div>
+            <div id="production-history-pagination" class="pagination"></div>
           </div>
         </div>
       </section>
@@ -1272,7 +1328,7 @@
             class="input"
             id="do-customer"
             placeholder="Masukkan nama Pelanggan"
-            onblur="titleCase(this)"
+            oninput="this.value = this.value.toUpperCase()"
           />
         </div>
         <div class="form-group">
@@ -1282,7 +1338,7 @@
             class="input"
             id="do-design"
             placeholder="Masukkan judul desain"
-            onblur="titleCase(this)"
+            oninput="this.value = this.value.toUpperCase()"
           />
         </div>
         <div class="form-grid-2">
@@ -1308,6 +1364,7 @@
             class="input"
             id="do-notes"
             placeholder="Brief desain, catatan revisi, referensi..."
+            oninput="this.value = this.value.toUpperCase()"
           ></textarea>
         </div>
         <div
@@ -1347,7 +1404,7 @@
               class="input"
               id="po-customer"
               placeholder="Nama Pelanggan"
-              onblur="titleCase(this)"
+              oninput="this.value = this.value.toUpperCase()"
             />
           </div>
           <div class="form-group">
@@ -1356,7 +1413,7 @@
               class="input"
               id="po-team"
               placeholder="Nama tim"
-              onblur="titleCase(this)"
+              oninput="this.value = this.value.toUpperCase()"
             />
           </div>
         </div>
@@ -1394,6 +1451,7 @@
             class="input"
             id="po-notes"
             placeholder="Detail produksi, variasi, referensi..."
+            oninput="this.value = this.value.toUpperCase()"
           ></textarea>
         </div>
         <div
@@ -1436,6 +1494,8 @@
             class="input"
             id="production-note-text"
             placeholder="Catat pembaruan produksi..."
+            oninput="this.value = this.value.toUpperCase()"
+            oninput="this.value = this.value.toUpperCase()"
           ></textarea>
         </div>
         <div
