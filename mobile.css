@@ -253,6 +253,23 @@
     height: 42px;
   }
 
+    .mobile-icon-only {
+    padding: 8px;
+    min-width: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-icon-only span {
+    display: none;
+  }
+
+  .mobile-icon-only i {
+    margin: 0;
+    font-size: 18px;
+  }
+
   /* =========================================================== */
   /* TABLES */
   /* =========================================================== */
