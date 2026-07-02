@@ -1,35 +1,160 @@
 /* ============================================================= */
-/* ---------------------- MOBILE ONLY --------------------------- */
+/* ---------------------- MOBILE DEFAULTS ---------------------- */
 /* ============================================================= */
-.design-mobile-list {
+
+.design-mobile-list,
+#production-mobile-list,
+.history-mobile-list {
   display: none;
 }
 
+/* ============================================================= */
+/* ---------------------- MOBILE MEDIA (768px) ------------------- */
+/* ============================================================= */
+
 @media (max-width: 768px) {
+  /* =========================================================== */
+  /* WORKSPACE & LAYOUT */
+  /* =========================================================== */
+
+  .workspace {
+    padding: 80px 16px 48px;
+  }
+
+  /* =========================================================== */
+  /* NAVBAR */
+  /* =========================================================== */
+
+  .nav {
+    padding: 14px 16px;
+  }
+
+  .nav-name {
+    font-size: 15px;
+  }
+
+  .nav-actions {
+    gap: 5px;
+  }
+
+  .btn-sm {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .d-none-mobile {
+    display: none;
+  }
+
+  /* =========================================================== */
+  /* MOBILE NAVIGATION DROPDOWN */
+  /* =========================================================== */
+
+  .mobile-nav-dropdown {
+    display: block;
+    position: relative;
+  }
+
+  .mobile-nav-menu {
+    position: absolute;
+    top: 52px;
+    right: 0;
+    width: 130px;
+    padding: 9px;
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 3000;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    box-shadow: var(--shadow-md);
+  }
+
+  .mobile-nav-menu.show {
+    display: flex;
+  }
+
+  .mobile-nav-menu button {
+    padding: 5px;
+    border: none;
+    background: none;
+    border-radius: 15px;
+    text-align: right;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-1);
+  }
+
+  .mobile-nav-menu button:active {
+    background: var(--blue-bg);
+  }
+
+  /* =========================================================== */
+  /* HERO */
+  /* =========================================================== */
+
+  .hero {
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .hero-title {
+    font-size: 24px;
+    line-height: 1.2;
+  }
+
+  .hero-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* =========================================================== */
+  /* GRIDS */
+  /* =========================================================== */
+
+  .grid-2,
+  .grid-3,
+  .form-grid-2,
+  .form-grid-3,
+  .dashboard-grid,
+  .stats-grid,
+  .production-grid,
+  .design-grid,
+  .extra-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* =========================================================== */
+  /* CARDS */
+  /* =========================================================== */
+
+  .card,
+  .production-card,
+  .design-card {
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  /* =========================================================== */
+  /* DESIGN MOBILE CARD */
+  /* =========================================================== */
+
   .design-mobile-list {
     display: flex;
     flex-direction: column;
     gap: 16px;
   }
 
-  #design-section .ws-table {
-    display: none;
-  }
-
-  /* ========================================================= */
-  /* ---------------- DESIGN MOBILE CARD -------------------- */
-  /* ========================================================= */
-
   .design-mobile-card {
-    background: var(--surface-solid);
-    border: 1px solid var(--border);
-    border-radius: var(--r-lg);
     padding: 18px;
-
     display: flex;
     flex-direction: column;
     gap: 14px;
-
+    background: var(--surface-solid);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
     box-shadow: var(--shadow-xs);
   }
 
@@ -38,6 +163,7 @@
     justify-content: space-between;
     align-items: flex-start;
     gap: 12px;
+    text-transform: uppercase;
   }
 
   .design-mobile-head > div {
@@ -68,207 +194,58 @@
     display: flex;
     align-items: center;
     gap: 8px;
-
     font-size: 13px;
     font-weight: 600;
     color: var(--text-2);
   }
 
-  .workspace {
-    padding: 80px 16px 48px;
-  }
-  .hero {
-    padding: 24px;
-  }
-  .hero-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .grid-2,
-  .grid-3,
-  .form-grid-2,
-  .form-grid-3 {
-    grid-template-columns: 1fr;
-  }
-
-  .ws-table thead {
+  #design-section .ws-table {
     display: none;
   }
-  .ws-table,
-  .ws-table tbody,
-  .ws-table tr,
-  .ws-table td {
-    display: block;
-    width: 100%;
-  }
-  .ws-table tbody {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  .ws-table tbody tr {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-md);
-    padding: 16px;
-    box-shadow: var(--shadow-xs);
-  }
-  .ws-table tbody td {
-    border: none;
-    padding: 0 0 12px 0;
-  }
-  .ws-table tbody td:last-child {
-    padding-bottom: 0;
-  }
+
   .design-actions {
     justify-content: flex-start;
     flex-wrap: wrap;
   }
 
-  .summary-block {
-    padding: 32px 24px;
+  /* =========================================================== */
+  /* PRODUCTION MOBILE LIST */
+  /* =========================================================== */
+
+  #production-mobile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
-  .summary-grand-value {
-    font-size: 40px;
+
+  #production-section .ws-table {
+    display: none;
   }
-  .summary-grid {
-    grid-template-columns: repeat(2, 1fr);
+
+  /* =========================================================== */
+  /* PRODUCTION ACTIONS */
+  /* =========================================================== */
+
+  .production-actions {
+    flex-wrap: wrap;
+    gap: 8px;
   }
+
+  /* =========================================================== */
+  /* BUTTONS */
+  /* =========================================================== */
 
   .btn.btn-sm {
     width: 32px;
     height: 32px;
-
     padding: 0;
-
     justify-content: center;
-
-    font-size: 0;
-
+    font-size: 13px;
     gap: 0;
   }
 
   .btn.btn-sm i {
     font-size: 18px;
-  }
-  /* ========================================================= */
-  /* ---------------------- NAVBAR ---------------------------- */
-  /* ========================================================= */
-
-  .nav {
-    padding: 14px 16px;
-  }
-
-  .nav-name {
-    font-size: 15px;
-  }
-
-  .nav-actions {
-    gap: 5px;
-  }
-
-  .btn-sm {
-    width: 42px;
-    height: 42px;
-    padding: 0;
-    justify-content: center;
-  }
-
-  .d-none-mobile {
-    display: none;
-  }
-
-  /* ============================================================= */
-  /* ---------------- MOBILE NAVIGATION --------------------------- */
-  /* ============================================================= */
-
-  .mobile-nav-dropdown {
-    display: none;
-  }
-
-  .mobile-nav-dropdown {
-    display: block;
-    position: relative;
-  }
-
-  .mobile-nav-menu {
-    position: absolute;
-    top: 52px;
-    right: 0;
-    width: 130px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 15px;
-    padding: 9px;
-    display: none;
-    flex-direction: column;
-    gap: 4px;
-    z-index: 3000;
-    box-shadow: var(--shadow-md);
-  }
-
-  .mobile-nav-menu.show {
-    display: flex;
-  }
-
-  .mobile-nav-menu button {
-    border: none;
-    background: none;
-    text-align: right;
-    padding: 5px 5px;
-    border-radius: 15px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-1);
-  }
-
-  .mobile-nav-menu button:active {
-    background: var(--blue-bg);
-  }
-
-  /* ========================================================= */
-  /* ---------------------- HERO ------------------------------ */
-  /* ========================================================= */
-
-  .hero {
-    padding: 18px;
-    border-radius: 22px;
-  }
-
-  .hero-title {
-    font-size: 24px;
-    line-height: 1.2;
-  }
-
-  /* ========================================================= */
-  /* ---------------------- GRID ------------------------------ */
-  /* ========================================================= */
-
-  .dashboard-grid,
-  .stats-grid,
-  .production-grid,
-  .design-grid {
-    grid-template-columns: 1fr;
-  }
-
-  /* ========================================================= */
-  /* ---------------------- CARD ------------------------------ */
-  /* ========================================================= */
-
-  .card,
-  .production-card,
-  .design-card {
-    padding: 16px;
-    border-radius: 20px;
-  }
-
-  /* ========================================================= */
-  /* ---------------------- ACTIONS --------------------------- */
-  /* ========================================================= */
-
-  .production-actions,
-  .design-actions {
-    flex-wrap: wrap;
-    gap: 8px;
   }
 
   .btn-icon-round {
@@ -276,9 +253,54 @@
     height: 42px;
   }
 
-  /* ========================================================= */
-  /* ---------------------- PIPELINE -------------------------- */
-  /* ========================================================= */
+  /* =========================================================== */
+  /* TABLES */
+  /* =========================================================== */
+
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .ws-table thead {
+    display: none;
+  }
+
+  .ws-table,
+  .ws-table tbody,
+  .ws-table tr,
+  .ws-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .ws-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .ws-table tbody tr {
+    padding: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-xs);
+  }
+
+  .ws-table tbody td {
+    padding: 0 0 12px 0;
+    border: none;
+  }
+
+  .ws-table tbody td:last-child {
+    padding-bottom: 0;
+  }
+
+  /* =========================================================== */
+  /* PIPELINE */
+  /* =========================================================== */
 
   .pipeline-wrap {
     overflow-x: auto;
@@ -292,11 +314,38 @@
 
   .pipeline {
     min-width: max-content;
+    gap: 8px;
+    align-items: flex-start;
   }
 
-  /* ========================================================= */
-  /* ---------------------- TOOLBAR --------------------------- */
-  /* ========================================================= */
+  .pipeline-step {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .pipeline-dot {
+    width: 42px;
+    height: 42px;
+    font-size: 16px;
+  }
+
+  .pipeline-label {
+    font-size: 10px;
+    line-height: 1.2;
+    text-align: center;
+    margin-top: 6px;
+  }
+
+  .pipeline-count {
+    width: 22px;
+    height: 22px;
+    font-size: 10px;
+    margin-top: 6px;
+  }
+
+  /* =========================================================== */
+  /* TOOLBAR */
+  /* =========================================================== */
 
   .toolbar {
     gap: 10px;
@@ -309,9 +358,9 @@
     width: 100%;
   }
 
-  /* ========================================================= */
-  /* ---------------------- MODAL ----------------------------- */
-  /* ========================================================= */
+  /* =========================================================== */
+  /* MODAL */
+  /* =========================================================== */
 
   .modal-overlay {
     padding: 0;
@@ -326,57 +375,25 @@
     overflow-y: auto;
   }
 
-  /* ========================================================= */
-  /* ---------------------- TABLE ----------------------------- */
-  /* ========================================================= */
+  /* =========================================================== */
+  /* SUMMARY BLOCK */
+  /* =========================================================== */
 
-  table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
+  .summary-block {
+    padding: 32px 24px;
   }
 
-  .pipeline {
-    gap: 8px;
-
-    align-items: flex-start;
+  .summary-grand-value {
+    font-size: 40px;
   }
 
-  .pipeline-step {
-    min-width: 0;
-
-    flex: 1;
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 
-  .pipeline-dot {
-    width: 42px;
-    height: 42px;
-
-    font-size: 16px;
-  }
-
-  .pipeline-label {
-    font-size: 10px;
-
-    line-height: 1.2;
-
-    text-align: center;
-
-    margin-top: 6px;
-  }
-
-  .pipeline-count {
-    width: 22px;
-    height: 22px;
-
-    font-size: 10px;
-
-    margin-top: 6px;
-  }
-
-  .extra-grid {
-    grid-template-columns: 1fr;
-  }
+  /* =========================================================== */
+  /* EXTRAS */
+  /* =========================================================== */
 
   .extra-top {
     flex-direction: column;
@@ -390,5 +407,65 @@
 
   .extra-total {
     font-size: 24px;
+  }
+
+  /* =========================================================== */
+  /* HISTORY MOBILE LIST */
+  /* =========================================================== */
+
+  #costing-history-section .ws-table,
+  #design-history-section .ws-table,
+  #production-history-section .ws-table {
+    display: none;
+  }
+
+  .history-mobile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .history-mobile-item {
+    padding: 14px;
+    border-radius: 14px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+  }
+
+  .history-mobile-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    text-transform: uppercase;
+  }
+
+  .history-mobile-customer {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-1);
+  }
+
+  .history-mobile-title {
+    font-size: 13px;
+    color: var(--text-2);
+    margin-top: 2px;
+  }
+
+  .history-mobile-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 10px;
+  }
+
+  .history-mobile-actions .btn {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+  }
+
+  .history-mobile-actions i {
+    font-size: 17px;
   }
 }
