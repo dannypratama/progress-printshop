@@ -253,9 +253,8 @@
     height: 42px;
   }
 
-    .mobile-icon-only {
-    padding: 8px;
-    min-width: 40px;
+  .mobile-icon-only {
+    width: 32px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
