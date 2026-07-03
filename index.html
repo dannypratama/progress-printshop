@@ -214,12 +214,15 @@
       <section class="ws-section" id="design-section">
         <div class="ws-section-head">
           <div class="ws-section-title">
-            <div class="section-icon"><i class="ri-palette-line"></i></div>
+            <div class="section-icon">
+              <i class="ri-palette-line"></i>
+            </div>
+
             Pesanan Desain
           </div>
           <div class="ws-section-actions">
             <select
-              class="input"
+              class="input hide-mobile"
               id="design-filter"
               style="width: 180px"
               onchange="setDesignFilter(this.value)"
@@ -244,30 +247,32 @@
             </button>
           </div>
         </div>
-        <div class="card card-solid" style="padding: 0; overflow: hidden">
-          <table class="ws-table">
-            <thead>
-              <tr>
-                <th>No</th>
+        <div id="design-content" class="section-content">
+          <div class="card card-solid">
+            <table class="ws-table">
+              <thead>
+                <tr>
+                  <th>No</th>
 
-                <th
-                  onclick="toggleCustomerSort('designOrder')"
-                  style="cursor: pointer"
-                >
-                  Pelanggan
-                </th>
+                  <th
+                    onclick="toggleCustomerSort('designOrder')"
+                    style="cursor: pointer"
+                  >
+                    Pelanggan
+                  </th>
 
-                <th>Desain</th>
-                <th>Jenis</th>
-                <th>Batas Waktu</th>
-                <th>Status</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody id="design-tbody"></tbody>
-          </table>
-          <div id="design-mobile-list" class="design-mobile-list"></div>
-          <div class="pagination" id="design-pagination"></div>
+                  <th>Desain</th>
+                  <th>Jenis</th>
+                  <th>Batas Waktu</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="design-tbody"></tbody>
+            </table>
+            <div id="design-mobile-list" class="design-mobile-list"></div>
+            <div class="pagination" id="design-pagination"></div>
+          </div>
         </div>
       </section>
 
@@ -345,7 +350,7 @@
 
           <div class="ws-section-actions">
             <select
-              class="input"
+              class="input hide-mobile"
               id="production-filter"
               style="width: 180px"
               onchange="renderProductionOrders()"
@@ -377,7 +382,7 @@
           </div>
         </div>
 
-        <div class="card card-solid" style="padding: 0; overflow: hidden">
+        <div class="card card-solid">
           <table class="ws-table">
             <thead>
               <tr>
@@ -407,6 +412,7 @@
             <div class="section-icon"><i class="ri-list-check-3"></i></div>
             Tugas Harian
           </div>
+
           <div class="ws-section-actions">
             <button class="btn btn-ghost" onclick="openModal('modal-task')">
               <i class="ri-add-line"></i> Tambah Tugas
@@ -461,33 +467,31 @@
 
       <!-- ==================================================== -->
       <!-- ------------- COST ESTIMATOR (GEMINI CORE) -------- -->
-      <section class="ws-section" id="estimator-section">
-        <div class="ws-section-head">
+      <section class="ws-section collapsible-section" id="estimator-section">
+        <div class="ws-section-head" onclick="toggleSection(this)">
           <div class="ws-section-title">
+            <i
+              id="estimator-arrow"
+              class="ri-arrow-down-s-line section-arrow"
+            ></i>
             <div class="section-icon"><i class="ri-calculator-line"></i></div>
             Estimasi Biaya Produksi
           </div>
-          <div class="ws-section-actions">
-            <button
-              class="btn btn-ghost btn-sm mobile-icon-only"
-              onclick="resetFormCosting()"
-            >
+          <div class="ws-section-actions section-body">
+            <button class="btn btn-ghost btn-sm" onclick="resetFormCosting()">
               <i class="ri-refresh-line"></i>
-              <span>Kosongkan Form</span>
+              <span class="hide-mobile">Kosongkan Form</span>
             </button>
 
-            <button
-              class="btn btn-ghost btn-sm mobile-icon-only"
-              onclick="saveHistory()"
-            >
+            <button class="btn btn-ghost btn-sm" onclick="saveHistory()">
               <i class="ri-bookmark-line"></i>
-              <span>Simpan</span>
+              <span class="hide-mobile">Simpan</span>
             </button>
           </div>
         </div>
 
         <!-- Customer Info -->
-        <div class="card card-solid" style="margin-bottom: 16px">
+        <div class="card card-solid section-body" style="margin-bottom: 16px">
           <div class="form-grid-3">
             <div class="form-group">
               <label class="form-label">Nama Pelanggan</label>
@@ -539,7 +543,11 @@
         </div>
 
         <!-- Material Cards -->
-        <div class="grid-auto" id="grid-bahan" style="margin-bottom: 16px">
+        <div
+          class="grid-auto section-body"
+          id="grid-bahan"
+          style="margin-bottom: 16px"
+        >
           <!-- Milano -->
           <div class="mat-card">
             <div class="mat-card-head">
@@ -844,7 +852,11 @@
         </div>
 
         <!-- Additional Costs -->
-        <div class="grid-3" style="margin-bottom: 16px" id="grid-tambahan">
+        <div
+          class="grid-3 section-body"
+          style="margin-bottom: 16px"
+          id="grid-tambahan"
+        >
           <div class="mat-card">
             <div class="mat-card-head">
               <div>
@@ -970,7 +982,7 @@
         </div>
 
         <!-- Summary Block -->
-        <div class="summary-block" id="summary">
+        <div class="summary-block section-body" id="summary">
           <div class="summary-grand">
             <div class="summary-grand-label">TOTAL MODAL PRODUKSI</div>
             <div class="summary-grand-value" id="grandTotal">Rp0</div>
@@ -1010,14 +1022,15 @@
 
       <!-- ==================================================== -->
       <!-- -------------- QUICK ESTIMATE --------------------- -->
-      <section class="ws-section" id="qe-section">
-        <div class="ws-section-head">
+      <section class="ws-section collapsible-section" id="qe-section">
+        <div class="ws-section-head" onclick="toggleSection(this)">
           <div class="ws-section-title">
+            <i id="qe-arrow" class="ri-arrow-down-s-line section-arrow"></i>
             <div class="section-icon"><i class="ri-flashlight-line"></i></div>
             Estimasi Cepat
           </div>
         </div>
-        <div class="card card-solid">
+        <div class="card card-solid section-body">
           <div class="form-grid-4">
             <div class="form-group">
               <label class="form-label">Kuantitas</label>
@@ -1133,9 +1146,14 @@
       <!-- ==================================================== -->
       <!-- ---------------- RIWAYAT COSTING ------------------- -->
 
-      <section class="ws-section" id="costing-history-section">
-        <div class="ws-section-head">
+      <section
+        class="ws-section collapsible-section"
+        id="costing-history-section"
+      >
+        <div class="ws-section-head" onclick="toggleSection(this)">
           <div class="ws-section-title">
+            <i id="design-arrow" class="ri-arrow-down-s-line section-arrow"></i>
+
             <div class="section-icon">
               <i class="ri-exchange-dollar-line"></i>
             </div>
@@ -1143,7 +1161,7 @@
             Riwayat Estimasi
           </div>
 
-          <div class="ws-section-actions">
+          <div class="ws-section-actions section-body">
             <div class="search-wrap" style="width: 220px">
               <i class="search-icon ri-search-line"></i>
 
@@ -1157,7 +1175,7 @@
           </div>
         </div>
 
-        <div class="card">
+        <div class="card card-solid section-body">
           <div class="table-wrap">
             <table class="ws-table">
               <thead>
@@ -1200,9 +1218,13 @@
       <!-- ==================================================== -->
       <!-- ---------------- RIWAYAT DESAIN -------------------- -->
 
-      <section class="ws-section" id="design-history-section">
-        <div class="ws-section-head">
+      <section
+        class="ws-section collapsible-section"
+        id="design-history-section"
+      >
+        <div class="ws-section-head" onclick="toggleSection(this)">
           <div class="ws-section-title">
+            <i id="design-arrow" class="ri-arrow-down-s-line section-arrow"></i>
             <div class="section-icon">
               <i class="ri-file-list-3-line"></i>
             </div>
@@ -1210,7 +1232,7 @@
             Riwayat Desain
           </div>
 
-          <div class="ws-section-actions">
+          <div class="ws-section-actions section-body">
             <div class="search-wrap" style="width: 220px">
               <i class="search-icon ri-search-line"></i>
 
@@ -1224,7 +1246,7 @@
           </div>
         </div>
 
-        <div class="card">
+        <div class="card card-solid section-body">
           <div class="table-wrap">
             <table class="ws-table">
               <thead>
@@ -1260,16 +1282,23 @@
       <!-- ==================================================== -->
       <!-- ---------------- RIWAYAT PRODUKSI ------------------ -->
 
-      <section class="ws-section" id="production-history-section">
-        <div class="ws-section-head">
+      <section
+        class="ws-section collapsible-section"
+        id="production-history-section"
+      >
+        <div class="ws-section-head" onclick="toggleSection(this)">
           <div class="ws-section-title">
+            <i
+              id="production-arrow"
+              class="ri-arrow-down-s-line section-arrow"
+            ></i>
             <div class="section-icon">
               <i class="ri-stack-line"></i>
             </div>
 
             Riwayat Produksi
           </div>
-          <div class="ws-section-actions">
+          <div class="ws-section-actions section-body">
             <div class="search-wrap" style="width: 220px">
               <i class="search-icon ri-search-line"></i>
 
@@ -1283,7 +1312,7 @@
           </div>
         </div>
 
-        <div class="card">
+        <div class="card card-solid section-body">
           <div class="table-wrap">
             <table class="ws-table">
               <thead>
@@ -1504,7 +1533,6 @@
             id="production-note-text"
             placeholder="Catat pembaruan produksi..."
             oninput="this.value = this.value.toUpperCase()"
-            oninput="this.value = this.value.toUpperCase()"
           ></textarea>
         </div>
         <div
@@ -1587,5 +1615,12 @@
     </div>
 
     <script type="module" src="app.js"></script>
+    <footer class="app-footer">
+      <picture class="footer-brand">
+        <source media="(max-width:767px)" srcset="/progress-footer.svg" />
+        <source media="(min-width:768px)" srcset="/progress-footer.svg" />
+        <img src="/progress-footer.svg" alt="Progress Printshop" />
+      </picture>
+    </footer>
   </body>
 </html>
