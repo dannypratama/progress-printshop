@@ -35,11 +35,8 @@
   --blue-bg: rgba(13, 110, 253, 0.35);
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
-
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
-
   --shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
 
   --r-sm: 8px;
@@ -51,6 +48,16 @@
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --t-fast: 0.15s var(--ease-out);
   --t-mid: 0.3s var(--ease-out);
+
+  --fs-xs: 0.75rem; /* 12px */
+  --fs-sm: 0.875rem; /* 14px */
+  --fs-base: 1rem; /* 16px */
+  --fs-md: 1.125rem; /* 18px */
+  --fs-lg: 1.25rem; /* 20px */
+  --fs-xl: 1.5rem; /* 24px */
+  --fs-2xl: 1.75rem; /* 28px */
+  --fs-3xl: 2.25rem; /* 36px */
+  --fs-4xl: clamp(36px, 5vw, 56px); /* responsive */
 }
 
 body.dark {
@@ -141,6 +148,10 @@ body {
 
 body.dark .nav-brand .nav-logo-img {
   filter: brightness(0) invert(1) contrast(1.1);
+}
+
+body.dark .footer-brand img {
+  filter: brightness(0) invert(1) contrast(0.5);
 }
 
 .t-mono {
@@ -1292,49 +1303,6 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 /* ============================================================= */
-/* ---------------- PRODUCTION TABLE ---------------------------- */
-/* ============================================================= */
-
-#production-section .card {
-  padding: 0;
-  overflow: hidden;
-}
-
-#production-section .ws-table {
-  width: 100%;
-}
-
-#production-section tbody td {
-  vertical-align: middle;
-}
-
-#production-section tbody td:nth-child(2),
-#production-section tbody td:nth-child(3),
-#production-section tbody td:nth-child(4),
-#production-section tbody td:nth-child(5),
-#production-section tbody td:nth-child(6) {
-  white-space: nowrap;
-}
-
-#production-section tbody td:last-child {
-  text-align: right;
-  width: 220px;
-}
-
-#production-section .design-actions {
-  justify-content: flex-end;
-}
-
-#production-section .badge-status {
-  min-width: 95px;
-  justify-content: center;
-}
-
-#production-section .empty-state {
-  padding: 40px 20px;
-}
-
-/* ============================================================= */
 /* ---------------------- TABLE SYSTEM -------------------------- */
 /* ============================================================= */
 
@@ -1516,4 +1484,67 @@ input[type="number"]::-webkit-outer-spin-button {
   color: var(--text-3);
   text-align: center;
   line-height: 1.4;
+}
+
+/* ============================================================= */
+/* --------------------- COLLAPSIBLE ---------------------------- */
+/* ============================================================= */
+
+.section-arrow {
+  font-size: 20px;
+  color: var(--text-3);
+  transition: 0.25s ease;
+  transform: rotate(0deg);
+}
+
+.collapsible-section:not(.collapsed) .section-arrow {
+  transform: rotate(-90deg);
+}
+
+.collapsible-section.collapsed .section-body {
+  display: none;
+}
+
+.ws-section-head {
+  cursor: pointer;
+  user-select: none;
+}
+
+/* ============================================================= */
+/* ------------------------- FOOTER ----------------------------- */
+/* ============================================================= */
+.app-footer {
+  overflow: hidden;
+  padding: 0;
+}
+
+.footer-brand {
+  width: 100%;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-brand img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Desktop: gambar full width dengan transform 25% ke bawah */
+@media (min-width: 769px) {
+  .footer-brand img {
+    transform: translateY(25%);
+    pointer-events: none;
+    user-select: none;
+  }
+}
+
+/* Mobile: gambar full width dengan transform minimal */
+@media (max-width: 768px) {
+  .footer-brand img {
+    transform: translateY(12%);
+    pointer-events: none;
+    user-select: none;
+  }
 }
