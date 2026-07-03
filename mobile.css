@@ -253,20 +253,12 @@
     height: 42px;
   }
 
-  .mobile-icon-only {
-    width: 32px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  .hide-mobile {
+    display: none !important;
   }
 
-  .mobile-icon-only span {
-    display: none;
-  }
-
-  .mobile-icon-only i {
-    margin: 0;
-    font-size: 18px;
+  .show-mobile {
+    display: initial !important;
   }
 
   /* =========================================================== */
@@ -380,7 +372,6 @@
 
   .modal-overlay {
     padding: 0;
-    align-items: flex-end;
   }
 
   .modal {
@@ -445,7 +436,7 @@
     padding: 14px;
     border-radius: 14px;
     background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border);
   }
 
   .history-mobile-head {
@@ -483,5 +474,21 @@
 
   .history-mobile-actions i {
     font-size: 17px;
+  }
+
+  .ws-section-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ws-section-actions .search-wrap {
+    flex: 1;
+    width: auto !important;
+    min-width: 0;
+  }
+
+  .ws-section-actions .btn {
+    flex-shrink: 0;
   }
 }
