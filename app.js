@@ -3305,6 +3305,55 @@ window.changeProductionHistoryPage = function (page) {
   });
 };
 
+window.toggleSection = function (header) {
+  const section = header.closest(".collapsible-section");
+
+  if (!section) return;
+
+  section.classList.toggle("collapsed");
+
+  saveSectionState();
+
+  const y = section.getBoundingClientRect().top + window.scrollY - 80;
+
+  window.scrollTo({
+    top: y,
+    behavior: "smooth",
+  });
+};
+
+window.saveSectionState = function () {
+  const states = {};
+
+  document.querySelectorAll(".collapsible-section").forEach((section) => {
+    states[section.id] = section.classList.contains("collapsed");
+  });
+
+  localStorage.setItem("sectionStates", JSON.stringify(states));
+};
+
+window.restoreSectionState = function () {
+  const defaults = {
+    "design-section": false,
+    "production-section": false,
+    "tasks-section": false,
+
+    "history-section": true,
+    "design-history-section": true,
+    "production-history-section": true,
+    "report-section": true,
+  };
+
+  const saved = JSON.parse(localStorage.getItem("sectionStates") || "{}");
+
+  document.querySelectorAll(".collapsible-section").forEach((section) => {
+    const collapsed = Object.prototype.hasOwnProperty.call(saved, section.id)
+      ? saved[section.id]
+      : (defaults[section.id] ?? true);
+
+    section.classList.toggle("collapsed", collapsed);
+  });
+};
 // =====================================================
 // IMPORT FIREBASE
 // =====================================================
@@ -3452,6 +3501,7 @@ function init() {
   hitung();
   updatePipelineChart();
   renderCostingHistory();
+  restoreSectionState();
 
   const doDeadline = document.getElementById("do-deadline");
   if (doDeadline) doDeadline.value = getToday();
@@ -3522,7 +3572,6 @@ window.renderProductionHistory = renderProductionHistory;
 // ---------------- COSTING ----------------
 
 window.hitung = hitung;
-window.formatRibuan = formatRibuan;
 window.titleCase = titleCase;
 window.hitungTambahan = hitungTambahan;
 
