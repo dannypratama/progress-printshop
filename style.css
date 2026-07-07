@@ -2250,7 +2250,7 @@ input[type="number"]::-webkit-outer-spin-button {
 
 .estimate-summary {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 10px;
   background: var(--input-bg);
   border-radius: var(--r-md);
