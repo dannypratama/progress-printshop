@@ -3854,7 +3854,7 @@ window.generateInvoiceHTML = function (invoiceData) {
     <div class="invoice-header__label">
         <img
           class="text-vertical"
-          src="/PROGRESS CLAUDE 3 JULI - REFACTOR/text-invoice.svg"
+          src="/text-invoice.svg"
           alt="Progress Logo"
           onerror="this.style.display='none'"
         >
@@ -3865,7 +3865,7 @@ window.generateInvoiceHTML = function (invoiceData) {
       <div class="invoice-header__company">
         <img
           class="company-logo"
-          src="/PROGRESS CLAUDE 3 JULI - REFACTOR/logo-progress.svg"
+          src="/logo-progress.svg"
           alt="Progress Logo"
           onerror="this.style.display='none'"
         >
