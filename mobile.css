@@ -204,8 +204,10 @@
   }
 
   .design-actions {
-    justify-content: flex-start;
-    flex-wrap: wrap;
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 10px;
   }
 
   /* =========================================================== */
@@ -227,8 +229,10 @@
   /* =========================================================== */
 
   .production-actions {
-    flex-wrap: wrap;
-    gap: 8px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 10px;
   }
 
   /* =========================================================== */
@@ -268,7 +272,6 @@
   table {
     display: block;
     overflow-x: auto;
-    white-space: nowrap;
   }
 
   .ws-table thead {
