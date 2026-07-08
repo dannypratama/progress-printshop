@@ -187,33 +187,64 @@ function updateHero() {
     month: "long",
     day: "numeric",
   };
-  document.getElementById("hero-date").textContent = now.toLocaleDateString(
-    "id-ID",
-    options,
-  );
-  document.getElementById("hero-clock").textContent =
-    now.toLocaleTimeString("id-ID", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    }) + " WIB";
 
-  const orders = getDesignOrders();
-  setText(
-    "stat-active-orders",
-    orders.filter((o) => o.stage !== "done").length,
-  );
-  setText(
-    "stat-production",
-    getProductionOrders().filter((o) => o.stage !== "done").length,
-  );
-  setText("stat-done-today", orders.filter((o) => o.stage === "done").length);
-  setText(
-    "stat-overdue",
-    orders.filter(
-      (o) => o.deadline && o.deadline < getToday() && o.stage !== "done",
-    ).length,
-  );
+  if (document.getElementById("hero-date")) {
+    document.getElementById("hero-date").textContent = now.toLocaleDateString(
+      "id-ID",
+      options,
+    );
+  }
+  if (document.getElementById("hero-clock")) {
+    document.getElementById("hero-clock").textContent =
+      now.toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }) + " WIB";
+  }
+
+  // Mengambil data dari kedua workflow
+  const designOrders =
+    typeof getDesignOrders === "function" ? getDesignOrders() : [];
+  const prodOrders =
+    typeof getProductionOrders === "function" ? getProductionOrders() : [];
+  const todayStr =
+    typeof getToday === "function"
+      ? getToday()
+      : now.toISOString().split("T")[0];
+
+  // 1. PESANAN AKTIF
+  // Desain: stage === "design"
+  // Produksi: stage === "design"
+  const activeDesign = designOrders.filter((o) => o.stage === "design").length;
+  const activeProd = prodOrders.filter((o) => o.stage === "design").length;
+  setText("stat-active-orders", activeDesign + activeProd);
+
+  // 2. DALAM PRODUKSI
+  // Desain: stage === "revisi"
+  // Produksi: stage === "printing" atau "jahit" atau "qc"
+  const prodDesign = designOrders.filter((o) => o.stage === "revisi").length;
+  const prodProd = prodOrders.filter((o) =>
+    ["printing", "jahit", "qc"].includes(o.stage),
+  ).length;
+  setText("stat-production", prodDesign + prodProd);
+
+  // 3. SELESAI
+  // Desain: stage === "done"
+  // Produksi: stage === "done"
+  const doneDesign = designOrders.filter((o) => o.stage === "done").length;
+  const doneProd = prodOrders.filter((o) => o.stage === "done").length;
+  setText("stat-done-today", doneDesign + doneProd);
+
+  // 4. TERLAMBAT
+  // Digabung dari semua order (Desain + Produksi) yang melewati deadline dan belum selesai
+  const overdueDesign = designOrders.filter(
+    (o) => o.deadline && o.deadline < todayStr && o.stage !== "done",
+  ).length;
+  const overdueProd = prodOrders.filter(
+    (o) => o.deadline && o.deadline < todayStr && o.stage !== "done",
+  ).length;
+  setText("stat-overdue", overdueDesign + overdueProd);
 }
 
 function toggleMobileNav() {
@@ -634,47 +665,34 @@ ${statusLabel[o.stage]}
 </td>
 
 <td class="table-action">
-
-<div class="table-actions">
-
-<button
-class="btn btn-ghost btn-sm btn-icon-round"
-onclick="prevDesignStage('${o.id}')">
-<i class="ri-arrow-left-line"></i>
-</button>
-
-${
-  o.stage !== "done"
-    ? `
-<button
-class="btn btn-solid btn-sm btn-icon-round"
-onclick="advanceDesignStage('${o.id}')">
-<i class="ri-arrow-right-line"></i>
-</button>
-`
-    : ""
-}
-
-<button
-class="btn btn-green btn-sm btn-icon-round"
-onclick="markDesignDone('${o.id}')">
-<i class="ri-check-line"></i>
-</button>
-
-<button
-class="btn btn-ghost btn-sm btn-icon-round"
-onclick="openEditDesign('${o.id}')">
-<i class="ri-edit-line"></i>
-</button>
-
-<button
-class="btn btn-red btn-sm btn-icon-round"
-onclick="deleteDesignOrder('${o.id}')">
-<i class="ri-delete-bin-line"></i>
-</button>
-
-</div>
-
+  <div class="action-dropdown">
+    <button class="btn btn-ghost btn-sm btn-icon-round dropdown-toggle" onclick="toggleActionDropdown(this, event)">
+      <i class="ri-more-2-fill"></i>
+    </button>
+    <div class="dropdown-menu">
+      <button class="btn btn-ghost btn-sm btn-icon-round" onclick="prevDesignStage('${o.id}')" title="Back">
+        <i class="ri-arrow-left-line"></i>
+      </button>
+      ${
+        o.stage !== "done"
+          ? `
+      <button class="btn btn-solid btn-sm btn-icon-round" onclick="advanceDesignStage('${o.id}')" title="Next">
+        <i class="ri-arrow-right-line"></i>
+      </button>
+      `
+          : ""
+      }
+      <button class="btn btn-green btn-sm btn-icon-round" onclick="markDesignDone('${o.id}')" title="Done">
+        <i class="ri-check-line"></i>
+      </button>
+      <button class="btn btn-ghost btn-sm btn-icon-round" onclick="openEditDesign('${o.id}')" title="Edit">
+        <i class="ri-edit-line"></i>
+      </button>
+      <button class="btn btn-red btn-sm btn-icon-round" onclick="deleteDesignOrder('${o.id}')" title="Delete">
+        <i class="ri-delete-bin-line"></i>
+      </button>
+    </div>
+  </div>
 </td>
 
 </tr>
@@ -1256,53 +1274,29 @@ ${
   </td>
 
   <td class="table-action">
-
-    <div class="table-actions">
-
-      <button
-        class="btn btn-ghost btn-sm btn-icon-round"
-        onclick="prevProductionStage('${o.id}')"
-      >
+  <div class="action-dropdown">
+    <button class="btn btn-ghost btn-sm btn-icon-round dropdown-toggle" onclick="toggleActionDropdown(this, event)">
+      <i class="ri-more-2-fill"></i>
+    </button>
+    <div class="dropdown-menu">
+      <button class="btn btn-ghost btn-sm btn-icon-round" onclick="prevProductionStage('${o.id}')" title="Back">
         <i class="ri-arrow-left-line"></i>
       </button>
-
-      ${
-        o.stage !== "done"
-          ? `
-      <button
-        class="btn btn-solid btn-sm btn-icon-round"
-        onclick="nextProductionStage('${o.id}')"
-      >
+      <button class="btn btn-solid btn-sm btn-icon-round" onclick="nextProductionStage('${o.id}')" title="Next">
         <i class="ri-arrow-right-line"></i>
       </button>
-      `
-          : ""
-      }
-
-      <button
-        class="btn btn-green btn-sm btn-icon-round"
-        onclick="markProductionDone('${o.id}')"
-      >
+      <button class="btn btn-green btn-sm btn-icon-round" onclick="markProductionDone('${o.id}')" title="Done">
         <i class="ri-check-line"></i>
       </button>
-
-      <button
-        class="btn btn-ghost btn-sm btn-icon-round"
-        onclick="openEditProduction('${o.id}')"
-      >
+      <button class="btn btn-ghost btn-sm btn-icon-round" onclick="openEditProduction('${o.id}')" title="Edit">
         <i class="ri-edit-line"></i>
       </button>
-
-      <button
-        class="btn btn-red btn-sm btn-icon-round"
-        onclick="deleteProductionOrder('${o.id}')"
-      >
+      <button class="btn btn-red btn-sm btn-icon-round" onclick="deleteProductionOrder('${o.id}')" title="Delete">
         <i class="ri-delete-bin-line"></i>
       </button>
-
     </div>
-
-  </td>
+  </div>
+</td>
 
 </tr>
 `;
@@ -2521,26 +2515,20 @@ ${rowNumber}
   </td>
 
   <td class="table-action">
-
-    <div class="table-actions">
-
-      <button
-        class="btn btn-ghost btn-sm btn-icon-round"
-        onclick="loadHistoryData('${o.id}')"
-      >
+  <div class="action-dropdown">
+    <button type="button" class="btn btn-ghost btn-sm btn-icon-round dropdown-toggle" onclick="toggleActionDropdown(this, event)">
+      <i class="ri-more-2-fill"></i>
+    </button>
+    <div class="dropdown-menu">
+      <button type="button" class="btn btn-ghost btn-sm btn-icon-round" onclick="loadHistoryData('${o.id}')" title="Load Data">
         <i class="ri-upload-2-line"></i>
       </button>
-
-      <button
-        class="btn btn-red btn-sm btn-icon-round"
-        onclick="deleteHistory('${o.id}')"
-      >
+      <button type="button" class="btn btn-red btn-sm btn-icon-round" onclick="deleteHistory('${o.id}')" title="Hapus">
         <i class="ri-delete-bin-line"></i>
       </button>
-
     </div>
-
-  </td>
+  </div>
+</td>
 
 </tr>
 
@@ -2762,26 +2750,20 @@ ${rowNumber}
   </td>
 
   <td class="table-action">
-
-    <div class="table-actions">
-
-      <button
-        class="btn btn-ghost btn-sm btn-icon-round"
-        onclick="openEditDesign('${o.id}')"
-      >
+  <div class="action-dropdown">
+    <button type="button" class="btn btn-ghost btn-sm btn-icon-round dropdown-toggle" onclick="toggleActionDropdown(this, event)">
+      <i class="ri-more-2-fill"></i>
+    </button>
+    <div class="dropdown-menu">
+      <button class="btn btn-ghost btn-sm btn-icon-round" onclick="openEditDesign('${o.id}')" title="Edit">
         <i class="ri-edit-line"></i>
       </button>
-
-      <button
-        class="btn btn-red btn-sm btn-icon-round"
-        onclick="deleteDesignOrder('${o.id}')"
-      >
+      <button class="btn btn-red btn-sm btn-icon-round" onclick="deleteDesignOrder('${o.id}')" title="Delete">
         <i class="ri-delete-bin-line"></i>
       </button>
-
     </div>
-
-  </td>
+  </div>
+</td>
 
 </tr>
 
@@ -3015,26 +2997,20 @@ ${rowNumber}
   </td>
 
   <td class="table-action">
-
-    <div class="table-actions">
-
-      <button
-        class="btn btn-ghost btn-sm btn-icon-round"
-        onclick="openEditProduction('${o.id}')"
-      >
+  <div class="action-dropdown">
+    <button type="button" class="btn btn-ghost btn-sm btn-icon-round dropdown-toggle" onclick="toggleActionDropdown(this, event)">
+      <i class="ri-more-2-fill"></i>
+    </button>
+    <div class="dropdown-menu">
+      <button class="btn btn-ghost btn-sm btn-icon-round" onclick="openEditProduction('${o.id}')" title="Edit">
         <i class="ri-edit-line"></i>
       </button>
-
-      <button
-        class="btn btn-red btn-sm btn-icon-round"
-        onclick="deleteProductionOrder('${o.id}')"
-      >
+      <button class="btn btn-red btn-sm btn-icon-round" onclick="deleteProductionOrder('${o.id}')" title="Delete">
         <i class="ri-delete-bin-line"></i>
       </button>
-
     </div>
-
-  </td>
+  </div>
+</td>
 
 </tr>
 
@@ -3634,18 +3610,23 @@ window.renderInvoices = function () {
           </span>
         </td>
         <td class="table-action">
-          <div class="table-actions">
-            <button class="btn btn-ghost btn-sm btn-icon-round" onclick="openInvoicePreview('${o.id}')">
-              <i class="ri-eye-line"></i>
-            </button>
-            <button class="btn btn-ghost btn-sm btn-icon-round" onclick="openEditInvoice('${o.id}')">
-              <i class="ri-edit-line"></i>
-            </button>
-            <button class="btn btn-red btn-sm btn-icon-round" onclick="deleteInvoice('${o.id}')">
-              <i class="ri-delete-bin-line"></i>
-            </button>
-          </div>
-        </td>
+  <div class="action-dropdown">
+    <button type="button" class="btn btn-ghost btn-sm btn-icon-round dropdown-toggle" onclick="toggleActionDropdown(this, event)">
+      <i class="ri-more-2-fill"></i>
+    </button>
+    <div class="dropdown-menu">
+      <button type="button" class="btn btn-ghost btn-sm btn-icon-round" onclick="openInvoicePreview('${o.id}')" title="Preview">
+        <i class="ri-eye-line"></i>
+      </button>
+      <button type="button" class="btn btn-ghost btn-sm btn-icon-round" onclick="openEditInvoice('${o.id}')" title="Edit">
+        <i class="ri-edit-line"></i>
+      </button>
+      <button type="button" class="btn btn-red btn-sm btn-icon-round" onclick="deleteInvoice('${o.id}')" title="Hapus">
+        <i class="ri-delete-bin-line"></i>
+      </button>
+    </div>
+  </div>
+</td>
       </tr>
     `;
     })
@@ -3855,7 +3836,7 @@ window.generateInvoiceHTML = function (invoiceData) {
         <img
           class="text-vertical"
           src="/text-invoice.svg"
-          alt="Progress Logo"
+          alt="Invoice"
           onerror="this.style.display='none'"
         >
        </div>
@@ -4397,6 +4378,28 @@ window.openModal = function (modalId) {
 };
 
 // RESET
+
+window.toggleActionDropdown = function (btn, event) {
+  event.stopPropagation();
+  const currentDropdown = btn.closest(".action-dropdown");
+
+  // Tutup semua dropdown aktif lainnya terlebih dahulu
+  document.querySelectorAll(".action-dropdown.active").forEach((dropdown) => {
+    if (dropdown !== currentDropdown) {
+      dropdown.classList.remove("active");
+    }
+  });
+
+  // Toggle dropdown yang sedang diklik
+  currentDropdown.classList.toggle("active");
+};
+
+// Global event listener untuk menutup dropdown saat klik di luar area menu
+document.addEventListener("click", function () {
+  document.querySelectorAll(".action-dropdown.active").forEach((dropdown) => {
+    dropdown.classList.remove("active");
+  });
+});
 
 // =====================================================
 // IMPORT FIREBASE
