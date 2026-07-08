@@ -205,7 +205,7 @@
 
   .design-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
     gap: 6px;
     margin-top: 10px;
   }
@@ -230,7 +230,7 @@
 
   .production-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
     gap: 6px;
     margin-top: 10px;
   }
@@ -464,7 +464,7 @@
 
   .history-mobile-actions {
     display: flex;
-    justify-content: flex-end;
+    justify-content: center;
     gap: 6px;
     margin-top: 10px;
   }
@@ -586,5 +586,173 @@
     left: auto;
     top: 100%;
     margin-top: 8px;
+  }
+
+  /* =========================================================== */
+  /* INVOICE PREVIEW HEADER (MOBILE) */
+  /* =========================================================== */
+
+  .invoice-preview-header {
+    height: auto;
+    min-height: 64px;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 16px;
+    gap: 10px;
+  }
+
+  .invoice-preview-title {
+    font-size: 15px;
+    justify-content: flex-start;
+  }
+
+  .invoice-preview-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 4px;
+    background: var(--input-bg);
+    padding: 4px;
+    border-radius: var(--r-md);
+  }
+
+  .invoice-preview-toolbar .btn-ghost.btn-sm {
+    flex: 1;
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    padding: 0;
+    justify-content: center;
+    border-radius: var(--r-sm);
+  }
+
+  #invoice-zoom-value {
+    font-size: 13px;
+    font-weight: 600;
+    min-width: 48px;
+    text-align: center;
+  }
+
+  /* =========================================================== */
+  /* INVOICE ITEMS ROW & BUTTONS (MOBILE) */
+  /* =========================================================== */
+
+  /* Container baris item dirubah menjadi card */
+  .invoice-item-row {
+    position: relative;
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 16px;
+    padding-top: 52px; /* Memberi jarak aman dari tombol delete di atas */
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    margin-bottom: 14px;
+  }
+
+  /* Baris pertama: Input Nama Produk memenuhi lebar card */
+  .invoice-item-row > .invoice-product-wrap {
+    grid-column: span 2;
+  }
+
+  /* Baris kedua: Dropdown Size dan Input Qty */
+  .invoice-item-row > select.invoice-size {
+    grid-column: span 1;
+  }
+  .invoice-item-row > .input-wrap {
+    grid-column: span 1;
+    width: 100%;
+  }
+
+  /* Baris ketiga: Input Harga Satuan dan Total Harga */
+  .invoice-item-row > input.invoice-price {
+    grid-column: span 1;
+  }
+  .invoice-item-row > input.invoice-total {
+    grid-column: span 1;
+  }
+
+  /* Mengunci posisi tombol hapus di kanan atas card */
+  .invoice-item-row > button.btn-red.btn-icon-round {
+    position: absolute !important;
+    top: 12px;
+    right: 12px;
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    padding: 0;
+    margin: 0;
+    z-index: 5;
+  }
+
+  /* Merapikan tombol Tambah Item di bawah list */
+  #modal-invoice button[onclick="addInvoiceItem()"] {
+    width: 100%;
+    height: 44px;
+    justify-content: center;
+    background: var(--input-bg);
+    border: 1px dashed var(--border-strong);
+    color: var(--text-1);
+    font-weight: 500;
+    margin-top: 8px;
+    margin-bottom: 24px;
+  }
+
+  /* =========================================================== */
+  /* INVOICE PRODUCT BUILDER PANEL (MOBILE) */
+  /* =========================================================== */
+
+  /* Memaksa wrapper mengambil ruang baris penuh pada grid item card */
+  .invoice-item-row > .invoice-product-wrap {
+    grid-column: span 2;
+    display: flex;
+    flex-direction: column; /* Mengubah alur ke vertikal agar panel turun ke bawah */
+    align-items: stretch;
+    position: relative;
+  }
+
+  /* Baris input utama produk */
+  .invoice-product-wrap-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+
+  /* Mengubah panel melayang menjadi kontainer inline (accordion) */
+  .invoice-product-wrap .product-builder-panel {
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-top: 0;
+    box-shadow: none !important;
+    border: 1px solid var(--border-strong);
+    background: var(--bg-deep); /* Background pembeda agar kontras */
+    border-radius: var(--r-md);
+    padding: 14px;
+    gap: 10px;
+
+    /* Animasi transisi membuka/menutup */
+    display: none;
+    flex-direction: column;
+  }
+
+  /* Menampilkan panel dengan flex layout saat class .show aktif */
+  .invoice-product-wrap .product-builder-panel.show {
+    display: flex !important;
+  }
+
+  /* Membuat tombol simpan template memenuhi lebar layar mobile */
+  .product-builder-panel window.applyProductSpec,
+  .product-builder-panel .btn {
+    width: 100% !important;
+    height: 40px;
+    justify-content: center;
+    margin-top: 4px;
   }
 }
