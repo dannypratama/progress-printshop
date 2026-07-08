@@ -31,7 +31,7 @@
 
     <!-- Icons -->
     <link
-      href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css"
+      href="https://cdn.jsdelivr.net/npm/remixicon@4.9.1/fonts/remixicon.css"
       rel="stylesheet"
     />
     <link
@@ -51,7 +51,7 @@
     <!-- ==================================================== -->
     <!-- ---------------------- NAVBAR ---------------------- -->
     <nav class="nav">
-      <div class="nav-brand">
+      <a class="nav-brand" href="#">
         <img
           src="https://i.ibb.co.com/bRGtz1hJ/LOGO-PROGRESS.png"
           alt="Logo"
@@ -59,7 +59,7 @@
           onerror="this.style.display = 'none'"
         />
         <span class="nav-name">Progress<span> ★ </span>Workspace</span>
-      </div>
+      </a>
 
       <div class="nav-actions">
         <button
@@ -105,6 +105,10 @@
 
             <button onclick="scrollToSection('tasks-section')">
               Tugas Harian
+            </button>
+
+            <button onclick="scrollToSection('invoice-section')">
+              Invoice
             </button>
 
             <button onclick="scrollToSection('estimator-section')">
@@ -273,7 +277,7 @@
                   <th>Kategori</th>
                   <th>Deadline</th>
                   <th>Status</th>
-                  <th>•••</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody id="design-tbody"></tbody>
@@ -408,7 +412,7 @@
                 <th>Material</th>
                 <th>Deadline</th>
                 <th>Status</th>
-                <th>•••</th>
+                <th></th>
               </tr>
             </thead>
 
@@ -539,7 +543,7 @@
 
                 <th>Status</th>
 
-                <th>•••</th>
+                <th></th>
               </tr>
             </thead>
 
@@ -570,7 +574,7 @@
           <div class="ws-section-title">
             <i
               id="estimator-arrow"
-              class="ri-arrow-down-s-line section-arrow"
+              class="ri-arrow-right-s-line section-arrow"
             ></i>
             <div class="section-icon"><i class="ri-calculator-line"></i></div>
             Estimasi Produksi
@@ -1123,7 +1127,7 @@
       <section class="ws-section collapsible-section" id="qe-section">
         <div class="ws-section-head" onclick="toggleSection(this)">
           <div class="ws-section-title">
-            <i id="qe-arrow" class="ri-arrow-down-s-line section-arrow"></i>
+            <i id="qe-arrow" class="ri-arrow-right-s-line section-arrow"></i>
             <div class="section-icon"><i class="ri-flashlight-line"></i></div>
             Estimasi Cepat
           </div>
@@ -1224,7 +1228,10 @@
       >
         <div class="ws-section-head" onclick="toggleSection(this)">
           <div class="ws-section-title">
-            <i id="design-arrow" class="ri-arrow-down-s-line section-arrow"></i>
+            <i
+              id="design-arrow"
+              class="ri-arrow-right-s-line section-arrow"
+            ></i>
 
             <div class="section-icon">
               <i class="ri-exchange-dollar-line"></i>
@@ -1273,7 +1280,7 @@
 
                   <th>Tanggal</th>
 
-                  <th>•••</th>
+                  <th></th>
                 </tr>
               </thead>
 
@@ -1297,7 +1304,10 @@
       >
         <div class="ws-section-head" onclick="toggleSection(this)">
           <div class="ws-section-title">
-            <i id="design-arrow" class="ri-arrow-down-s-line section-arrow"></i>
+            <i
+              id="design-arrow"
+              class="ri-arrow-right-s-line section-arrow"
+            ></i>
             <div class="section-icon">
               <i class="ri-file-list-3-line"></i>
             </div>
@@ -1339,7 +1349,7 @@
 
                   <th>Tanggal</th>
 
-                  <th>•••</th>
+                  <th></th>
                 </tr>
               </thead>
 
@@ -1365,7 +1375,7 @@
           <div class="ws-section-title">
             <i
               id="production-arrow"
-              class="ri-arrow-down-s-line section-arrow"
+              class="ri-arrow-right-s-line section-arrow"
             ></i>
             <div class="section-icon">
               <i class="ri-stack-line"></i>
@@ -1409,7 +1419,7 @@
 
                   <th>Tanggal</th>
 
-                  <th>•••</th>
+                  <th></th>
                 </tr>
               </thead>
 
@@ -1925,18 +1935,9 @@
     <script type="module" src="priceDatabase.js"></script>
     <footer class="app-footer">
       <picture class="footer-brand">
-        <source
-          media="(max-width:767px)"
-          srcset="/progress-footer.svg"
-        />
-        <source
-          media="(min-width:768px)"
-          srcset="/progress-footer.svg"
-        />
-        <img
-          src="/progress-footer.svg"
-          alt="Progress Printshop"
-        />
+        <source media="(max-width:767px)" srcset="/progress-footer.svg" />
+        <source media="(min-width:768px)" srcset="/progress-footer.svg" />
+        <img src="/progress-footer.svg" alt="Progress Printshop" />
       </picture>
     </footer>
   </body>
