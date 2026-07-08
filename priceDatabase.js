@@ -348,201 +348,93 @@ window.addInvoiceItem = function () {
     "beforeend",
     `
 <div class="invoice-item-row">
-
-
-  <!-- PRODUK + SMART SPEC BUILDER -->
   <div class="invoice-product-wrap">
+    <div class="invoice-product-wrap-row">
+      <input
+        class="input invoice-product"
+        placeholder="Nama Produk"
+        oninput="
+          this.value=this.value.toUpperCase();
+          updateInvoiceTotals();
+        ">
+      <button
+        type="button"
+        class="product-builder-btn"
+        onclick="toggleProductBuilder(this)">
+        <i class="ri-ai-generate-text"></i>
+      </button>
+    </div>
 
-
-    <input
-      class="input invoice-product"
-      placeholder="Nama Produk"
-      oninput="
-        this.value=this.value.toUpperCase();
-        updateInvoiceTotals();
-      ">
-
-
-    <button
-      type="button"
-      class="product-builder-btn"
-      onclick="toggleProductBuilder(this)">
-      <i class="ri-magic-line"></i>
-    </button>
-
-
-
-    <!-- PRODUCT BUILDER PANEL -->
     <div class="product-builder-panel">
-
-
-      <!-- PRODUK -->
       <select 
         class="input spec-product"
         onchange="changeProductTemplate(this)">
-
-        <option value="JERSEY">
-          JERSEY CUSTOM
-        </option>
-
-        <option value="KAOS">
-          KAOS CUSTOM
-        </option>
-
-        <option value="KEMEJA">
-          KEMEJA CUSTOM
-        </option>
-
+        <option value="JERSEY">JERSEY CUSTOM</option>
+        <option value="KAOS">KAOS CUSTOM</option>
+        <option value="KEMEJA">KEMEJA CUSTOM</option>
       </select>
 
-
-
-
-      <!-- CATEGORY (JERSEY ONLY) -->
       <select class="input spec-category jersey-field">
-
-        <option value="ATASAN JERSEY">
-          ATASAN JERSEY
-        </option>
-
-        <option value="SETELAN JERSEY">
-          SETELAN JERSEY
-        </option>
-
+        <option value="ATASAN JERSEY">ATASAN JERSEY</option>
+        <option value="SETELAN JERSEY">SETELAN JERSEY</option>
       </select>
 
+      <select class="input spec-material"></select>
 
-
-
-      <!-- MATERIAL -->
-      <select class="input spec-material">
-
-      </select>
-
-
-
-
-      <!-- SLEEVE -->
       <select class="input spec-sleeve">
-
-        <option value="PENDEK">
-          PENDEK
-        </option>
-
-        <option value="PANJANG">
-          PANJANG +10K
-        </option>
-
+        <option value="PENDEK">PENDEK</option>
+        <option value="PANJANG">PANJANG +10K</option>
       </select>
 
-
-
-
-
-      <!-- COLLAR JERSEY ONLY -->
       <select class="input spec-collar jersey-field">
-
-        <option value="O-NECK">
-          O-NECK
-        </option>
-
-        <option value="V-NECK">
-          V-NECK
-        </option>
-
-        <option value="V-VARIASI">
-          V-VARIASI
-        </option>
-
-        <option value="V-POTONG">
-          V-POTONG
-        </option>
-
-        <option value="POLO V-NECK">
-          POLO V-NECK +5K
-        </option>
-
-        <option value="KERAH POLO">
-          KERAH POLO +10K
-        </option>
-
+        <option value="O-NECK">O-NECK</option>
+        <option value="V-NECK">V-NECK</option>
+        <option value="V-VARIASI">V-VARIASI</option>
+        <option value="V-POTONG">V-POTONG</option>
+        <option value="POLO V-NECK">POLO V-NECK +5K</option>
+        <option value="KERAH POLO">KERAH POLO +10K</option>
       </select>
 
-
-
-
-      <!-- ADDON -->
       <select class="input spec-addon">
-
-        <option value="">
-          TANPA ADDON
-        </option>
-
+        <option value="">TANPA ADDON</option>
       </select>
-
-
-
-
 
       <button
         type="button"
         class="btn btn-sm"
         onclick="applyProductSpec(this)">
-
-        <i class="ri-check-line"></i>
-        PAKAI TEMPLATE
-
+        <i class="ri-check-line"></i> PAKAI TEMPLATE
       </button>
-
-
     </div>
-
   </div>
 
-
-
-
-
-  <!-- UKURAN ORIGINAL -->
   <select
     class="input invoice-size"
     onchange="updateInvoiceTotals()">
-
     <option value="">Pilih</option>
-
     <option value="1">1</option>
     <option value="2">2</option>
     <option value="3">3</option>
-
     <option value="S">S</option>
     <option value="M">M</option>
     <option value="L">L</option>
     <option value="XL">XL</option>
-
     <option value="2XL">2XL</option>
     <option value="3XL">3XL</option>
     <option value="4XL">4XL</option>
     <option value="5XL">5XL</option>
-
   </select>
 
-
-
-    <div class="input-wrap">
-  <input
-    type="number"
-    class="input invoice-qty"
-    placeholder="0"
-    min="0"
-    oninput="updateInvoiceTotals()"
+  <div class="input-wrap">
+    <input
+      type="number"
+      class="input invoice-qty"
+      placeholder="0"
+      min="0"
+      oninput="updateInvoiceTotals()"
     >
     <span class="input-unit">pcs</span>
-</div>
-
-     
-
-
-
+  </div>
 
   <input
     type="number"
@@ -551,37 +443,46 @@ window.addInvoiceItem = function () {
     min="0"
     oninput="updateInvoiceTotals(true)">
 
-
-
   <input
     class="input invoice-total"
     readonly
     value="Rp0">
 
-
-
   <button
     type="button"
     class="btn btn-red btn-sm btn-icon-round"
     onclick="removeInvoiceItem(this)">
-
     <i class="ri-delete-bin-line"></i>
-
   </button>
-
-
 </div>
 `,
   );
 
   updateInvoiceTotals();
+
+  // Otomatis scroll ke item baru yang baru saja ditambahkan
+  const newRow = wrap.lastElementChild;
+  if (newRow) {
+    newRow.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 };
 
 window.removeInvoiceItem = function (button) {
   const row = button.closest(".invoice-item-row");
   if (row) {
+    // Cari elemen sebelum atau sesudahnya untuk target fokus scroll setelah dihapus
+    const fallbackTarget =
+      row.previousElementSibling ||
+      row.nextElementSibling ||
+      document.getElementById("invoice-items");
+
     row.remove();
     updateInvoiceTotals();
+
+    // Scroll ke posisi item terdekat agar layar tidak melompat sembarangan
+    if (fallbackTarget) {
+      fallbackTarget.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
   }
 };
 
