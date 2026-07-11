@@ -42,10 +42,13 @@
 
     <!-- External JS Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link rel="stylesheet" href="style.css" />
-    <link rel="stylesheet" href="mobile.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+    <link rel="stylesheet" href="css/variables.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/mobile.css" />
   </head>
   <body>
     <!-- ==================================================== -->
@@ -63,14 +66,6 @@
 
       <div class="nav-actions">
         <button
-          class="btn btn-ghost btn-sm"
-          onclick="exportReport()"
-          title="Ekspor Excel"
-        >
-          <i class="ri-file-excel-2-line"></i>
-        </button>
-
-        <button
           class="btn btn-ghost btn-sm btn-icon"
           onclick="toggleDark()"
           title="Ubah Tema"
@@ -78,13 +73,24 @@
           <i class="ri-contrast-2-line" id="theme-icon"></i>
         </button>
 
-        <button
-          class="btn btn-solid btn-sm btn-icon"
-          onclick="openModal('modal-design')"
-          title="Pesanan Baru"
-        >
-          <i class="ri-add-line"></i>
-        </button>
+        <div class="nav-add-dropdown">
+          <button
+            class="btn btn-solid btn-sm btn-icon"
+            onclick="toggleAddDropdown(event)"
+            title="Pesanan Baru"
+          >
+            <i class="ri-add-line"></i>
+          </button>
+
+          <div class="nav-add-menu" id="nav-add-menu">
+            <button onclick="openModal('modal-design')">
+              <i class="ri-palette-line"></i> Pesanan Desain
+            </button>
+            <button onclick="openModal('modal-production')">
+              <i class="ri-printer-line"></i> Pesanan Produksi
+            </button>
+          </div>
+        </div>
 
         <!-- MOBILE MENU -->
 
@@ -535,7 +541,7 @@
 
                 <th>Customer</th>
 
-                <th>Invoice</th>
+                <th>Produk</th>
 
                 <th>Tanggal</th>
 
@@ -1522,9 +1528,12 @@
 
     <!-- Modal Production -->
     <div class="modal-overlay" id="modal-production">
-      <div class="ws-modal">
+      <div class="ws-modal production-modal">
         <div class="modal-header">
-          <h3 class="modal-title">Tambah Produksi</h3>
+          <h3 class="modal-title">
+            <i class="ri-printer-line"></i>
+            <span id="po-modal-title">Tambah Produksi</span>
+          </h3>
           <button
             class="btn btn-ghost btn-icon"
             onclick="closeModal('modal-production')"
@@ -1557,23 +1566,16 @@
 
         <div class="form-grid-3">
           <div class="form-group">
-            <label class="form-label">Jumlah</label>
+            <label class="form-label">Jumlah (otomatis)</label>
             <div class="input-wrap">
-              <input class="input" id="po-qty" type="number" placeholder="0" />
+              <input class="input" id="po-qty" type="number" placeholder="0" readonly />
               <span class="input-unit">pcs</span>
             </div>
           </div>
 
           <div class="form-group">
-            <label class="form-label">Material</label>
-            <select class="input" id="po-material">
-              <option value="">Pilih material</option>
-              <option value="milano">Milano</option>
-              <option value="emboss">Emboss</option>
-              <option value="airwalk">Airwalk</option>
-              <option value="ribpoly">Ribpoly</option>
-              <option value="lotto">Lotto</option>
-            </select>
+            <label class="form-label">Material (otomatis)</label>
+            <input class="input" id="po-material" placeholder="Dari produk" readonly />
           </div>
 
           <div class="form-group">
@@ -1592,24 +1594,61 @@
           ></textarea>
         </div>
 
-        <div
-          style="
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 16px;
-          "
+        <div class="invoice-divider"></div>
+
+        <div class="invoice-title">
+          <i class="ri-file-list-3-line"></i>
+          Item Produksi
+        </div>
+
+        <div id="production-items"></div>
+
+        <button
+          class="btn btn-ghost btn-sm"
+          style="margin-top: 12px"
+          onclick="addProductionItem()"
         >
-          <button
-            class="btn btn-ghost"
-            onclick="closeModal('modal-production')"
-          >
+          <i class="ri-add-line"></i>
+          Tambah Item
+        </button>
+
+        <div class="invoice-divider"></div>
+
+        <div class="invoice-summary">
+          <div class="form-group">
+            <label class="form-label">Subtotal</label>
+            <input class="input" id="po-subtotal" readonly />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Diskon Produksi</label>
+            <input
+              class="input"
+              id="po-discount"
+              value="0"
+              type="number"
+              min="0"
+              oninput="updateProductionTotals()"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Total</label>
+            <input
+              class="input"
+              id="po-total"
+              readonly
+              style="font-weight: 700; color: var(--green)"
+            />
+          </div>
+        </div>
+
+        <div class="invoice-footer">
+          <button class="btn btn-ghost" onclick="closeModal('modal-production')">
             Batal
           </button>
-
           <button class="btn btn-solid" onclick="saveProductionOrder()">
-            <i class="ri-save-line"></i>
-            Simpan Produksi
+            <i class="ri-save-line"></i> Simpan Produksi
           </button>
         </div>
       </div>
@@ -1763,6 +1802,7 @@
               <option value="paid">Lunas</option>
             </select>
           </div>
+
         </div>
 
         <div class="invoice-divider"></div>
@@ -1774,7 +1814,7 @@
         </div>
 
         <div class="invoice-item-head">
-          <div>Produk</div>
+          <div></div>
 
           <div>Ukuran</div>
 
@@ -1931,8 +1971,7 @@
       <span id="toast-msg">Tersimpan</span>
     </div>
 
-    <script type="module" src="app.js"></script>
-    <script type="module" src="priceDatabase.js"></script>
+    <script type="module" src="js/app.js"></script>
     <footer class="app-footer">
       <picture class="footer-brand">
         <source media="(max-width:767px)" srcset="/progress-footer.svg" />
