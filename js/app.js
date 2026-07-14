@@ -2,7 +2,7 @@
 /* APP ENTRY POINT — Inisialisasi, Firebase, Global Bindings     */
 /* ============================================================= */
 
-import { KEYS, BAHAN, CFG } from "./database.js";
+import { KEYS, BAHAN, CFG, MASTER_PRICE_DATABASE, getProductBasePrice } from "./database.js";
 import { rupiah, angka, formatRibuan, titleCase, setText, getToday, formatRupiah, formatInvoiceDate, paginate, pagination, renderPagination, getAvatarPalette } from "./utils.js";
 import { saveAuto, loadAuto, saveHistory, getHistory, deleteHistoryById, loadHistoryData, saveTasks, getTasks, saveSectionState, restoreSectionState } from "./storage.js";
 import {
@@ -158,6 +158,7 @@ window.addProductionItem = function () {
       <select class="input spec-product" onchange="changeProductTemplate(this)"><option value="JERSEY">JERSEY CUSTOM</option><option value="KAOS">KAOS CUSTOM</option><option value="KEMEJA">KEMEJA CUSTOM</option></select>
       <select class="input spec-category jersey-field"><option value="ATASAN JERSEY">ATASAN JERSEY</option><option value="SETELAN JERSEY">SETELAN JERSEY</option></select>
       <select class="input spec-material"></select>
+      <select class="input spec-color kaos-field" style="display:none"><option value="">PILIH WARNA</option><option value="HITAM">HITAM</option><option value="PUTIH">PUTIH</option><option value="ABU">ABU</option><option value="BIRU BENHUR">BIRU BENHUR</option><option value="MAROON">MAROON</option><option value="MERAH">MERAH</option><option value="NAVY">NAVY</option></select>
       <select class="input spec-sleeve"><option value="PENDEK">PENDEK</option><option value="PANJANG">PANJANG +10K</option></select>
       <select class="input spec-collar jersey-field"><option value="O-NECK">O-NECK</option><option value="V-NECK">V-NECK</option><option value="V-VARIASI">V-VARIASI</option><option value="V-POTONG">V-POTONG</option><option value="POLO V-NECK">POLO V-NECK +5K</option><option value="KERAH POLO">KERAH POLO +10K</option></select>
       <select class="input spec-addon"><option value="">TANPA ADDON</option></select>
@@ -262,16 +263,45 @@ window.updateProductionTotals = function () {
     const priceInput = row.querySelector(".invoice-price");
     const totalInput = row.querySelector(".invoice-total");
     const qty = Number(qtyInput?.value || 0);
+    const size = row.querySelector(".invoice-size")?.value || "";
     const mode = group ? (group.querySelector(".invoice-mode-select")?.value || "auto") : row.dataset.priceMode || "auto";
     row.dataset.priceMode = mode;
     if ((mode === "auto" || mode === "auto-discount") && priceInput) {
       let autoPrice = 0;
-      if (product.includes("JERSEY")) {
-        autoPrice = 75000;
-        const size = row.querySelector(".invoice-size")?.value || "";
-        if (size === "3XL") autoPrice += 5000;
-        if (size === "4XL") autoPrice += 10000;
-        if (size === "5XL") autoPrice += 15000;
+      const specs = JSON.parse(group?.dataset?.specs || "{}");
+      if (specs.product) {
+        const pt = specs.product.toLowerCase();
+        const mat = specs.material || "";
+        const cat = specs.category || "";
+        const slv = (specs.sleeve || "PENDEK").toLowerCase();
+        const col = specs.collar || "";
+        const add = specs.addon || "";
+        autoPrice = getProductBasePrice(pt, { qty: qty || 1, material: mat, category: cat, sleeve: slv });
+        const matRules = MASTER_PRICE_DATABASE.materials[pt];
+        if (matRules) {
+          const mSearch = mat.toLowerCase();
+          for (const k in matRules) { if (mSearch.includes(k)) { autoPrice += matRules[k]; break; } }
+        }
+        const allAddons = MASTER_PRICE_DATABASE.addons[pt];
+        if (allAddons) {
+          if (col) {
+            const ck = col.toLowerCase().trim();
+            for (const sec in allAddons) { if (allAddons[sec][ck] !== undefined) { autoPrice += allAddons[sec][ck]; break; } }
+          }
+          if (add) {
+            const ak = add.toLowerCase().trim();
+            for (const sec in allAddons) { if (allAddons[sec][ak] !== undefined) { autoPrice += allAddons[sec][ak]; break; } }
+          }
+          if (slv !== "pendek" && MASTER_PRICE_DATABASE.products[pt]?.pricingModel !== "matrix") {
+            for (const sec in allAddons) { if (allAddons[sec][slv] !== undefined) { autoPrice += allAddons[sec][slv]; break; } }
+          }
+        }
+        const sRules = MASTER_PRICE_DATABASE.sizeCharges.global_apparel;
+        if (size && sRules[size] !== undefined) autoPrice += sRules[size];
+      } else {
+        if (product.includes("JERSEY")) autoPrice = 75000;
+        else if (product.includes("KAOS")) autoPrice = 55000;
+        else if (product.includes("KEMEJA")) autoPrice = 85000;
       }
       const discountPerPcs = Number(group?.querySelector(".invoice-mode-discount")?.value) || 0;
       priceInput.value = autoPrice - discountPerPcs;
@@ -489,6 +519,7 @@ window.addInvoiceItem = function () {
       <select class="input spec-product" onchange="changeProductTemplate(this)"><option value="JERSEY">JERSEY CUSTOM</option><option value="KAOS">KAOS CUSTOM</option><option value="KEMEJA">KEMEJA CUSTOM</option></select>
       <select class="input spec-category jersey-field"><option value="ATASAN JERSEY">ATASAN JERSEY</option><option value="SETELAN JERSEY">SETELAN JERSEY</option></select>
       <select class="input spec-material"></select>
+      <select class="input spec-color kaos-field" style="display:none"><option value="">PILIH WARNA</option><option value="HITAM">HITAM</option><option value="PUTIH">PUTIH</option><option value="ABU">ABU</option><option value="BIRU BENHUR">BIRU BENHUR</option><option value="MAROON">MAROON</option><option value="MERAH">MERAH</option><option value="NAVY">NAVY</option></select>
       <select class="input spec-sleeve"><option value="PENDEK">PENDEK</option><option value="PANJANG">PANJANG +10K</option></select>
       <select class="input spec-collar jersey-field"><option value="O-NECK">O-NECK</option><option value="V-NECK">V-NECK</option><option value="V-VARIASI">V-VARIASI</option><option value="V-POTONG">V-POTONG</option><option value="POLO V-NECK">POLO V-NECK +5K</option><option value="KERAH POLO">KERAH POLO +10K</option></select>
       <select class="input spec-addon"><option value="">TANPA ADDON</option></select>
@@ -565,7 +596,41 @@ window.updateInvoiceTotals = function (manualPrice = false) {
     }
     if ((mode === "auto" || mode === "auto-discount") && priceInput) {
       let autoPrice = 0;
-      if (product.includes("JERSEY")) { autoPrice = 75000; if (size === "3XL") autoPrice += 5000; if (size === "4XL") autoPrice += 10000; if (size === "5XL") autoPrice += 15000; }
+      const specs = JSON.parse(group?.dataset?.specs || "{}");
+      if (specs.product) {
+        const pt = specs.product.toLowerCase();
+        const mat = specs.material || "";
+        const cat = specs.category || "";
+        const slv = (specs.sleeve || "PENDEK").toLowerCase();
+        const col = specs.collar || "";
+        const add = specs.addon || "";
+        autoPrice = getProductBasePrice(pt, { qty: qty || 1, material: mat, category: cat, sleeve: slv });
+        const matRules = MASTER_PRICE_DATABASE.materials[pt];
+        if (matRules) {
+          const mSearch = mat.toLowerCase();
+          for (const k in matRules) { if (mSearch.includes(k)) { autoPrice += matRules[k]; break; } }
+        }
+        const allAddons = MASTER_PRICE_DATABASE.addons[pt];
+        if (allAddons) {
+          if (col) {
+            const ck = col.toLowerCase().trim();
+            for (const sec in allAddons) { if (allAddons[sec][ck] !== undefined) { autoPrice += allAddons[sec][ck]; break; } }
+          }
+          if (add) {
+            const ak = add.toLowerCase().trim();
+            for (const sec in allAddons) { if (allAddons[sec][ak] !== undefined) { autoPrice += allAddons[sec][ak]; break; } }
+          }
+          if (slv !== "pendek" && MASTER_PRICE_DATABASE.products[pt]?.pricingModel !== "matrix") {
+            for (const sec in allAddons) { if (allAddons[sec][slv] !== undefined) { autoPrice += allAddons[sec][slv]; break; } }
+          }
+        }
+        const sRules = MASTER_PRICE_DATABASE.sizeCharges.global_apparel;
+        if (size && sRules[size] !== undefined) autoPrice += sRules[size];
+      } else {
+        if (product.includes("JERSEY")) autoPrice = 75000;
+        else if (product.includes("KAOS")) autoPrice = 55000;
+        else if (product.includes("KEMEJA")) autoPrice = 85000;
+      }
       const discountPerPcs = Number(group?.querySelector(".invoice-mode-discount")?.value) || 0;
       priceInput.value = autoPrice - discountPerPcs;
     }
@@ -585,9 +650,15 @@ window.updateInvoiceTotals = function (manualPrice = false) {
 window.toggleProductBuilder = function (btn) {
   const panel = btn.closest(".invoice-product-wrap").querySelector(".product-builder-panel");
   if (!panel) return;
+  const wasHidden = !panel.classList.contains("show");
   panel.classList.toggle("show");
-  const productSelect = panel.querySelector(".spec-product");
-  if (productSelect) changeProductTemplate(productSelect);
+  if (wasHidden) {
+    const material = panel.querySelector(".spec-material");
+    if (material && material.options.length === 0) {
+      const productSelect = panel.querySelector(".spec-product");
+      if (productSelect) changeProductTemplate(productSelect);
+    }
+  }
 };
 
 window.changeProductTemplate = function (select) {
@@ -596,20 +667,24 @@ window.changeProductTemplate = function (select) {
   const material = panel.querySelector(".spec-material");
   const addon = panel.querySelector(".spec-addon");
   const jerseyFields = panel.querySelectorAll(".jersey-field");
+  const kaosFields = panel.querySelectorAll(".kaos-field");
   material.innerHTML = "";
   addon.innerHTML = `<option value="">TANPA ADDON</option>`;
   if (type === "JERSEY") {
     jerseyFields.forEach((el) => el.style.display = "block");
+    kaosFields.forEach((el) => el.style.display = "none");
     material.innerHTML = `<option value="MILANO">MILANO</option><option value="BINTIK BRAZIL">BINTIK BRAZIL</option><option value="PUMA">PUMA</option><option value="AIRWALK">AIRWALK +10K</option><option value="EMBOSS">EMBOSS +10K</option>`;
     addon.innerHTML += `<option value="OVERSIZE">OVERSIZE +5K</option>`;
   }
   if (type === "KAOS") {
     jerseyFields.forEach((el) => el.style.display = "none");
+    kaosFields.forEach((el) => el.style.display = "block");
     material.innerHTML = `<option value="COTTON COMBED 30S">COTTON COMBED 30S</option><option value="COTTON COMBED 24S">COTTON COMBED 24S</option><option value="COTTON COMBED 20S">COTTON COMBED 20S</option>`;
     addon.innerHTML += `<option value="OVERSIZE">OVERSIZE +5K</option><option value="3/4">LENGAN 3/4 +5K</option><option value="7/8">LENGAN 7/8 +5K</option>`;
   }
   if (type === "KEMEJA") {
     jerseyFields.forEach((el) => el.style.display = "none");
+    kaosFields.forEach((el) => el.style.display = "none");
     material.innerHTML = `<option value="AMERICAN DRILL">AMERICAN DRILL</option><option value="NAGATA DRILL">NAGATA DRILL</option><option value="RIPSTOP">RIPSTOP</option>`;
     addon.innerHTML += `<option value="TAMBAH TITIK BORDIR">TAMBAH BORDIR +10K</option>`;
   }
@@ -620,24 +695,43 @@ window.applyProductSpec = function (btn) {
   const name = wrap.querySelector(".invoice-product");
   const product = wrap.querySelector(".spec-product").value;
   const category = wrap.querySelector(".spec-category").value;
+  const color = wrap.querySelector(".spec-color")?.value || "";
   const material = wrap.querySelector(".spec-material").value;
   const sleeve = wrap.querySelector(".spec-sleeve").value;
   const collar = wrap.querySelector(".spec-collar").value;
   const addon = wrap.querySelector(".spec-addon").value;
-  let title = name.value.split("|")[0].trim();
   const parts = [];
-  const productUpper = product.toUpperCase();
-  if (!category || !category.toUpperCase().includes(productUpper)) {
-    parts.push(productUpper);
+  if (product === "JERSEY") {
+    if (category) parts.push(category);
+    if (material) parts.push(material);
+    if (collar) parts.push(collar);
+    if (sleeve) parts.push(sleeve);
+    if (addon) parts.push(addon);
+  } else if (product === "KAOS") {
+    parts.push("KAOS");
+    if (color) parts.push(color);
+    if (material) parts.push(material.replace(/^COTTON COMBED /, ""));
+    if (sleeve) parts.push(sleeve);
+    if (addon) parts.push(addon);
+  } else if (product === "KEMEJA") {
+    parts.push("KEMEJA");
+    if (material) parts.push(material);
+    if (sleeve) parts.push(sleeve);
+    if (addon) parts.push(addon);
   }
-  if (category) parts.push(category.toUpperCase());
-  if (material) parts.push(material.toUpperCase());
-  if (collar) parts.push(collar.toUpperCase());
-  if (sleeve) parts.push(sleeve.toUpperCase());
-  if (addon) parts.push(addon.toUpperCase());
-  name.value = `${title} | ${parts.join(" ")}`;
+  name.value = "| " + parts.join(" ");
+  const group = btn.closest(".invoice-product-group");
+  if (group) {
+    group.dataset.specs = JSON.stringify({
+      product, category, color, material, sleeve, collar, addon
+    });
+  }
   wrap.querySelector(".product-builder-panel").classList.remove("show");
-  updateInvoiceTotals();
+  if (btn.closest("#production-items")) {
+    updateProductionTotals();
+  } else {
+    updateInvoiceTotals();
+  }
 };
 
 /* SortableJS initialization */
